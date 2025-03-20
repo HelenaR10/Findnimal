@@ -1,0 +1,21 @@
+header {
+    background-color: var(--color-orange);
+}
+nav {
+    padding: 50px 0;
+}
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    width: 90%;
+    height: 50px;
+    justify-items: center;
+    align-items: center;
+    border: 1px solid;
+    border-radius: 20px;
+    padding: 0;
+    margin: 0 auto;
+    background-color: white;
+    font-family: var(--main-font);
+    font-weight: bold;
+}

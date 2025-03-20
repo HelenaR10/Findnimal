@@ -1,0 +1,62 @@
+:root {
+    --title-font: 'Gorditas';
+    --main-font: 'Glory';
+    --secondary-font:'Gochi Hand';
+    --color-blue: #E1F5F5;
+    --color-violet: #EFD8F3; 
+    --color-green: #ECFFEB; 
+    --color-red: #CA5635; 
+    --color-orange: #FFF5D7;
+}
+* {
+    box-sizing: border-box;
+
+}
+html, 
+body, h1, h2 {
+    padding: 0;
+    margin: 0;
+}
+a {
+    text-decoration: none;
+    color: black;
+}
+li {
+    list-style: none;
+}
+h1, h2 {
+    font-family: var(--title-font);
+}
+h1 {
+    font-weight: 500;
+    font-size: 60px;
+}
+h3 {
+    font-family: var(--secondary-font);
+    font-weight: lighter;
+}
+button {
+    margin: 0 20px;
+    padding: 10px 20px;
+    border: 1px solid black;
+    border-radius: 10px;
+    font-size: 15px;
+    font-family: var(--main-font);
+    font-weight: bold;
+    box-shadow: 1px 1px 0px 1px rgba(0,0,0,0.73);
+    cursor: pointer;
+}
+.navbar-forms {
+    background-image: url('../assets/Fondo.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    header {
+        background-color: transparent;
+    }
+
+    footer {
+        background-color: white;
+    }
+}

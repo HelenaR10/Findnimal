@@ -1,0 +1,108 @@
+.form-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--color-green);
+}
+.form-title {
+    display: flex;
+    position: relative;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding-top: 60px;
+
+    h1 {
+        font-size: 50px;
+    }
+    h3 {
+        font-size: 20px;
+        width: 60%;
+        margin: 10px
+    }
+
+}
+.flashes-form {
+    position: absolute;
+    width: 10%;
+    top: 50px;
+    right: 500px;
+}
+.arrow-form {
+    width: 20%;
+    transform: rotate(-90deg);
+}
+.main-form {
+    display: flex;
+    flex-direction: column;
+    width: 60%;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid black;
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 100px;
+    gap: 50px;
+
+    h4 {
+        width: 60%;
+        font-size: 25px;
+        font-family: var(--secondary-font);
+        font-weight: lighter;
+        text-align: center;
+        text-transform: uppercase;
+        color: var(--color-red);
+        border-bottom: 1px solid var(--color-red);
+    }
+}
+.main-form_items {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    form {
+        width: 100%;
+    }
+}
+.main-form_item-top {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    justify-items: center;
+    justify-content: center;
+    padding-bottom: 50px;
+    gap: 30px;
+}
+.main-form_item-bottom {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+}
+.main-form_item {
+    display: flex;
+    width: 70%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+label {
+    width: 100%;
+    font-family: var(--main-font);
+    text-transform: uppercase;
+    font-size: 18px;
+}
+input, select, textarea {
+    width: 100%;
+    border: 1px solid black;
+    border-radius: 20px;
+    padding: 15px 10px;
+    box-shadow: 5px 5px 0px 0px rgba(0,0,0,0.73);
+}
+textarea {
+    padding: 50px 10px;
+}
