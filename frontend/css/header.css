@@ -18,4 +18,8 @@ nav {
     background-color: white;
     font-family: var(--main-font);
     font-weight: bold;
+
+    li {
+        cursor: pointer;
+    }
 }

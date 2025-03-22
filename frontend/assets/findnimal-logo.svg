@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 100">
+  <!-- Magnifying Glass -->
+  <g transform="translate(0, 10)">
+    <!-- Handle -->
+    <path d="M 280 45 L 310 75" stroke="black" stroke-width="12" stroke-linecap="round"/>
+    <!-- Glass Circle -->
+    <circle cx="180" cy="45" r="40" fill="none" stroke="black" stroke-width="12"/>
+    <!-- Paw Print inside glass -->
+    <g transform="translate(155, 25) scale(0.4)">
+      <circle cx="60" cy="40" r="15" fill="#F4A460"/>
+      <circle cx="95" cy="40" r="15" fill="#F4A460"/>
+      <circle cx="77" cy="65" r="15" fill="#F4A460"/>
+      <ellipse cx="77" cy="95" rx="25" ry="20" fill="#F4A460"/>
+    </g>
+  </g>
+  
+  <!-- Text "Find" -->
+  <text x="320" y="65" font-family="Arial" font-size="48" font-weight="bold">
+    <tspan fill="black">Find</tspan>
+    <tspan fill="#FF6347">nim</tspan>
+    <tspan fill="black">al</tspan>
+  </text>
+  
+  <!-- Soccer ball dot -->
+  <circle cx="385" cy="65" r="5" fill="black"/>
+</svg> 
