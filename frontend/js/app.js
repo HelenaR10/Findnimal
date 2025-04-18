@@ -1,12 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
     renderMain();
-    renderHome();
 });
 
 function renderMain() {
-    const HTMLcontent = `${renderHeader()}
-                        <main></main>
-                        ${renderFooter()}`;
-
+    const isAuth = checkAuth();
+    
+    const HTMLcontent = `${renderHeader(isAuth)}
+    <main></main>
+    ${renderFooter()}`;
+    
     document.body.innerHTML = HTMLcontent;
+    renderHome();
 }

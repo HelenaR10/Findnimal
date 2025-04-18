@@ -1,15 +1,17 @@
-function renderHeader() {
+function renderHeader(isAuth) {
+    let buttonText = isAuth ? 'perfil' : 'login';
+    let longinLinks = `<li class="nav-item" id="rescue-navbar">Rescata</li>
+                        <li class="logout-item" id="logout-navbar">Logout</li>`;
+    
     const header = `<header>
                         <nav>
                             <ul class="navbar">
                                 <img src="assets/logo.svg" alt="logo" class="nav-logo">
-                                </div>
                                 <li class="nav-item" id="home-navbar">Inicio</li>
                                 <li class="nav-item" id="discover-navbar">Descubre</li>
-                                <li class="nav-item" id="rescue-navbar">Rescata</li>
                                 <li class="nav-item" id="find-navbar">Encuentra</li>
-                                <li class="nav-item" id="profile-navbar">Perfil</li>
-                                <button class="nav-button">Adopta</button>
+                                ${isAuth ? longinLinks : ''}
+                                <button class="nav-button" id="${buttonText}-navbar">${buttonText}</button>
                             </ul>
                         </nav>
                     </header>`;
@@ -26,21 +28,15 @@ document.addEventListener('click', (e) => {
 
     switch (true) {
         case e.target.id === 'home-navbar':
+            changeHeaderColor('var(--color-orange)');
             renderHome();
             renderFooter();
-            changeHeaderColor('var(--color-orange)');
             break;
 
         case e.target.id === 'discover-navbar':
+            changeHeaderColor('var(--color-blue)');
             renderDiscover();
             renderFooter();
-            changeHeaderColor('var(--color-blue)');
-            break;
-
-        case e.target.id === 'rescue-navbar':
-            renderRescueForm();
-            renderFooter();
-            changeHeaderColor('var(--color-green)');
             break;
 
         case e.target.id === 'find-navbar':
@@ -48,11 +44,35 @@ document.addEventListener('click', (e) => {
             renderFooter();
             changeHeaderColor('var(--color-green)');
             break;
+        
+        case e.target.id === 'rescue-navbar':
+            renderRescueForm();
+            renderFooter();
+            changeHeaderColor('var(--color-green)');
+            break;
 
-        case e.target.id === 'profile-navbar':
+        case e.target.id === 'perfil-navbar':
             renderProfile();
             renderFooter();
-            changeHeaderColor('var(--color-blue)');
+            changeHeaderColor('var(--color-violet)');
+            break;
+            
+        case e.target.id === 'login-navbar':
+            document.body.classList.add('navbar-forms');
+            renderLogin();
+            renderFooter();
+            changeHeaderColor('transparent');
+            break;
+            
+        case e.target.id === 'register-navbar':
+            document.body.classList.add('navbar-forms');
+            renderRegister();
+            renderFooter();
+            changeHeaderColor('transparent');
+            break;
+
+        case e.target.id === 'logout-navbar':
+            logout();
             break;
     }
 });

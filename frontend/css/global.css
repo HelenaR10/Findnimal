@@ -42,6 +42,10 @@ button {
     box-shadow: 1px 1px 0px 1px rgba(0,0,0,0.73);
     cursor: pointer;
 }
+button:hover {
+    background-color: var(--color-red);
+    color: white;
+}
 .navbar-forms {
     background-image: url('../assets/Fondo.png');
     background-size: cover;
@@ -54,5 +58,22 @@ button {
 
     footer {
         background-color: white;
+    }
+}
+
+.spinner {
+    z-index: 1;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.8);
+    img {
+        width: 10%;
     }
 }

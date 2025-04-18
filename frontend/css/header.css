@@ -3,6 +3,7 @@ header {
 }
 nav {
     padding: 50px 0;
+    position: relative;
 }
 .navbar {
     display: flex;
@@ -20,6 +21,27 @@ nav {
     font-weight: bold;
 
     li {
+        height: 100%;
         cursor: pointer;
+        padding: 0 10px;
+        align-content: space-around;
     }
+
+    li:hover {
+        background-color: var(--color-red);
+        color: white;
+    }
+
+}
+.nav-button {
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    padding: 35px;
+    margin: 0;
+    background-color: var(--color-violet);
+    transition: transform 0.5s ease-in-out;
+}
+.nav-button:hover {
+    background-color: var(--color-red);
+    transform: scale(1.2);
+    color: white;
 }

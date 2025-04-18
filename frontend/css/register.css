@@ -28,3 +28,8 @@
 .form-input {
     width: 70%;
 }
+.error-message {
+    display: none;
+    color: red;
+    font-family: var(--main-font);
+}

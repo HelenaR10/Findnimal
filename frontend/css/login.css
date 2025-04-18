@@ -60,7 +60,7 @@
     align-items: center;
     gap: 10px;
     padding-bottom: 30px;
-    a {
+    p {
         font-family: var(--secondary-font);
         text-transform: uppercase;
         color: var(--color-red);
@@ -74,7 +74,7 @@
     gap: 10px;
     font-family: var(--secondary-font);
 
-    a {
+    .register-here {
         color: var(--color-red);
         cursor: pointer;
     }
