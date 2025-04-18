@@ -3,7 +3,6 @@ function showLoader() {
                         <img src="assets/spinner.svg" alt="spinner">
                     </div>`;
 
-    // const main = document.querySelector('main');
     document.body.insertAdjacentHTML('afterBegin', spinner);
 }
 
