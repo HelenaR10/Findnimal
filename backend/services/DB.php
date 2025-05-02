@@ -19,13 +19,15 @@ class DB {
         }
     }
 
-    public function request($sql, $data) {
+    public function request($sql, $data = []) {
+        // var_dump($sql, $data);
+        // die;
         try {
             $stmt = $this->conn->prepare($sql);
             
             $stmt->execute($data);
     
-            return $result = (stripos($sql, 'SELECT') === 0) ? $stmt->fetchAll() : $stmt;
+            return (stripos($sql, 'SELECT') === 0) ? $stmt->fetchAll() : $stmt;
 
         } catch (PDOException $e) {
             throw new Exception("Error on conection: {$e->getMessage()}");

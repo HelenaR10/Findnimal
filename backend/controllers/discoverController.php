@@ -6,7 +6,7 @@ $data = json_decode(file_get_contents('php://input'));
 
 switch ($data->endpoint) {
 
-    case 'discover':
+    case 'getOrganizations':
 
         $search = (filter_var($data->search)) ? $data->search : '';
         $filters = (is_array($data->filter)) ? $data->filter : [];
@@ -85,6 +85,10 @@ switch ($data->endpoint) {
         }
         
         sendHttpSuccess($organizationsData);
+        
+        break;
+
+    case 'getOrganizationProfile':
         
         break;
 }

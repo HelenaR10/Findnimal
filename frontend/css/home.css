@@ -28,14 +28,14 @@
     width: 15%;
     position: absolute;
     z-index: 1;
-    bottom: 380px;
-    right: 420px;
+    bottom: 370px;
+    right: 630px;
 }
 .arrow-icon {
-    width: 30%;
+    width: 25%;
     position: absolute;
-    top: 260px;
-    left: 430px;
+    top: 240px;
+    left: 670px;
 }
 .home-cover_title-red {
     color: var(--color-red);

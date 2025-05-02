@@ -11,7 +11,7 @@ function renderHeader(isAuth) {
                                 <li class="nav-item" id="discover-navbar">Descubre</li>
                                 <li class="nav-item" id="find-navbar">Encuentra</li>
                                 ${isAuth ? longinLinks : ''}
-                                <button class="nav-button" id="${buttonText}-navbar">${buttonText}</button>
+                                <button class="nav-button nav-item" id="${buttonText}-navbar">${buttonText}</button>
                             </ul>
                         </nav>
                     </header>`;
@@ -20,17 +20,24 @@ function renderHeader(isAuth) {
 
 function changeHeaderColor(color) {
     const header = document.querySelector('header');
-
     header.style.backgroundColor = color;
 }
 
-document.addEventListener('click', (e) => {
+document.addEventListener('click', async (e) => {
+
+    const navItems = document.querySelectorAll('.nav-item');    
+
+    if (e.target.matches('.nav-item')) {
+        navItems.forEach(item => item.classList.remove('menu-active'));
+        e.target.classList.add('menu-active');
+    }
 
     switch (true) {
         case e.target.id === 'home-navbar':
             changeHeaderColor('var(--color-orange)');
             renderHome();
             renderFooter();
+
             break;
 
         case e.target.id === 'discover-navbar':
@@ -52,7 +59,7 @@ document.addEventListener('click', (e) => {
             break;
 
         case e.target.id === 'perfil-navbar':
-            renderProfile();
+            await renderProfile();
             renderFooter();
             changeHeaderColor('var(--color-violet)');
             break;

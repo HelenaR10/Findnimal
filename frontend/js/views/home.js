@@ -52,6 +52,9 @@ function renderHome() {
                        </div> `;
 
     main.innerHTML= HTMLcontent;
+
+    const homeMenu = document.querySelector('#home-navbar');
+    homeMenu.classList.add('menu-active');
 }
 
 function removeBodyClass() {
