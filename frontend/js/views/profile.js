@@ -59,7 +59,6 @@ async function getAllPosts() {
         }
         
         const receiveData = await response.json();
-        console.log(receiveData.data);
 
         return receiveData.data;
 
@@ -91,7 +90,6 @@ async function getSpeciesAndBreedsData() {
         }
         
         const receiveData = await response.json();
-        console.log(receiveData.data);
 
         return receiveData.data;
 
@@ -102,7 +100,6 @@ async function getSpeciesAndBreedsData() {
 
 async function editProfile(profileForm) {
     const formData = new FormData(profileForm);
-    console.log(profileForm);
     formData.append('endpoint', 'editProfile');
     formData.append('userImage', profileForm.dataset.userImage);
 
@@ -135,6 +132,74 @@ async function editProfile(profileForm) {
         }
 }
 
+async function getMailbox() {
+    
+    const token = getAuthToken();
+
+    try {
+        const response = await fetch('../backend/controllers/profileController.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                endpoint: 'getMailBoxData',
+            })
+        });
+
+        if (response.status === 401) {
+            logout();
+            alert('Sesión expirada, inicia sesión');
+        }
+
+        if (!response.ok) {
+            throw new Error('No se encontraron coincidencias');
+        }
+        
+        const receiveData = await response.json();
+        return receiveData.data;
+
+    } catch (error) {
+        console.error('Error:', error.message);
+    }
+}
+
+async function deleteNotification(notificationId) {
+    const token = getAuthToken();
+
+    try {
+        const response = await fetch('../backend/controllers/profileController.php', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                endpoint: 'deleteNotification',
+                notificationId: notificationId
+            })
+        });
+
+        if (response.status === 401) {
+            logout();
+            alert('Sesión expirada, inicia sesión');
+        }
+
+        if (!response.ok) {
+            throw new Error('No se encontraron coincidencias');
+        }
+        
+        const receiveData = await response.json();
+        const formContainer = document.querySelector('.profile-form_container');
+        formContainer.remove()
+        renderMailbox();
+
+    } catch (error) {
+        console.error('Error:', error.message);
+    }
+}
+
 async function createPost(postForm) {
     showLoader();
     
@@ -162,9 +227,9 @@ async function createPost(postForm) {
             }
             
             const receiveData = await response.json();
-            console.log(receiveData.data);
-            removeLoader();
+
             document.querySelector('.profile-form_container').remove();
+            removeLoader();
             renderProfile();
 
         } catch (error) {
@@ -246,7 +311,6 @@ async function deletePost(animalId) {
 async function renderProfile() {
     const userData = await getProfile();
     const postsData = await getAllPosts();
-
     const main = document.querySelector('main');
 
     let HTMLcontent = '<div class="profile-main">';
@@ -283,8 +347,10 @@ async function renderProfile() {
             
                         <div class="profile-data_buttons">
                             <button id="editProfileButton">Editar perfil</button>
-                            <button><img src="assets/icons/" alt="settings"></button>
-                            <button>Ver buzón</button>
+                            <div class="settings-icon">
+                                <img src="assets/icons/settings-icon.svg" alt="settings">
+                            </div>
+                            <button id="showMailboxButton">Ver buzón</button>
                         </div>
             
                         <div class="profile-pics">
@@ -305,9 +371,9 @@ async function renderProfile() {
             HTMLcontent += `<div class="profile-pics_item" data-value="${post.post_id}">
                                 <img src="../storage/${post.animal_image}" alt="${post.name}" class="animal-image" data-animal-id="${post.animal_id}">
                                 <div class="pics_item-buttons">
-                                    <img src="assets/icons/edit-icon.svg" alt="edit-icon" id="editPostButton" class="action-icon">
-                                    <img src="assets/icons/eye-icon.svg" alt="edit-icon" id="showPostButton" class="action-icon">
-                                    <img src="assets/icons/delete-icon.svg" alt="delete-icon" id="deletePostButton" class="action-icon">
+                                    <img src="assets/icons/edit-icon.svg" alt="edit-icon" class="action-icon edit-post-button">
+                                    <img src="assets/icons/eye-icon.svg" alt="edit-icon" class="action-icon show-post-button">
+                                    <img src="assets/icons/delete-icon.svg" alt="delete-icon" class="action-icon delete-post-button">
                                 </div>
                             </div>`;
         });
@@ -319,7 +385,7 @@ async function renderProfile() {
 
 async function renderEditProfile() {
     const userData = await getProfile();
-    console.log(userData);
+
     let currentRole = userData.role;
     let userImage = userData.image;
     let userSurname = (userData.role === 2) ? 'Organización' : userData.surname;
@@ -377,6 +443,51 @@ async function renderEditProfile() {
     addSelectedElement(currentRole, '#profileType');
 }
 
+async function renderMailbox() {
+    const mailBoxData = await getMailbox();
+    let notifications = '';
+    
+    mailBoxData.forEach((notification) => {
+        notifications += ` <div class="notification-box">
+                                <div class="notification" id="${notification.notificationId}">
+                                    <div class="notification-img">
+                                        <img src="../storage/${notification.animalImage}" alt="${notification.senderName}">
+                                    </div>
+                                    <h3>${notification.senderName}</h3>
+                                    <div class="notification-buttons">
+                                        <button class="show-notification">Ver</button>
+                                        <button class="delete-notification">Eliminar</button>
+                                    </div>
+                                </div>
+                                <div class="hidden-modal">
+                                    <p>El usuario ${notification.senderName} ${notification.senderSurname} está interesado en adoptar a ${notification.animalName}.</p>
+                                    <p>Puedes contactarlo por:</p>
+                                    <ul>
+                                        <li>Teléfono: ${notification.senderPhone}</li>
+                                        <li>Email: ${notification.senderEmail}</li>
+                                    </ul>
+                                </div>
+                            </div>`;
+    });
+                            
+    let notificationContainer = (mailBoxData.length > 0) ? notifications : '<div class="notification-empty">Tu buzón está vacío</div>';
+
+    const mailBox = `<div class="profile-form_container">
+                        <div class="mailbox-container">
+                            <div class="mail-title">
+                                <h1>Buzón</h1>
+                                <p>Aquí puedes ver las personas interesadas en los animales de tu perfil</p>
+                            </div>
+                            <div class="notifications-container">
+                                ${notificationContainer}
+                            </div>
+                            <button class="cancel-button-profile">Cancelar</button>
+                        </div>
+                    </div>`;
+
+    document.body.insertAdjacentHTML('afterBegin', mailBox);
+}
+
 async function renderCreatePost() {
     const speciesBreedsData = await getSpeciesAndBreedsData();
     const seenSpecies = new Set();
@@ -391,11 +502,11 @@ async function renderCreatePost() {
                                 <form id="createPostForm">
                                     <div class="form-input">
                                         <label for="name">Nombre</label>
-                                        <input type="text" id="createPostName" name="name">
+                                        <input type="text" id="createPostName" name="name" required>
                                     </div>
                                     <div class="form-input">
                                         <label for="specie">Especie</label>
-                                        <select name="specie" id="createPostSpecie">
+                                        <select name="specie" id="createPostSpecie" required>
                                             <option value="" disabled selected>Elige una especie</option>`;
     speciesBreedsData.forEach(element => {
         if (!seenSpecies.has(element.specie_name)) {
@@ -408,13 +519,13 @@ async function renderCreatePost() {
                     </div>
                     <div class="form-input">
                         <label for="breed">Raza</label>
-                        <select name="breed" id="createPostBreed">
+                        <select name="breed" id="createPostBreed" required>
                             <option value="" disabled selected>Elige una raza</option>
                         </select>
                             </div>
                             <div class="form-input">
                                 <label for="age">Edad aproximada</label>
-                                <select name="age" id="createPostAge">
+                                <select name="age" id="createPostAge" required>
                                     <option value="" disabled selected>Elige una edad</option>
                                     <option value="1">Cría</option>
                                     <option value="2">Junior</option>
@@ -424,19 +535,64 @@ async function renderCreatePost() {
                             </div>
                             <div class="form-input">
                                 <label for="sex">Sexo</label>
-                                <select name="sex" id="createPostSex">
+                                <select name="sex" id="createPostSex" required>
                                     <option value="" disabled selected>Elige el género</option>
                                     <option value="1">Hembra</option>
                                     <option value="2">Macho</option>
                                 </select>
                             </div>
                             <div class="form-input">
+                                <label for="hair">Color del pelo</label>
+                                <select name="hair" required>
+                                    <option value="" disabled selected>Elige un color de pelo</option>
+                                    <option value="1">Negro</option>
+                                    <option value="2">Blanco</option>
+                                    <option value="3">Marrón</option>
+                                    <option value="4">Gris</option>
+                                    <option value="5">Varios colores</option>
+                                    <option value="5">Otros</option>
+                                </select>
+                            </div>
+                            <div class="form-input">
+                                <label for="eyes">Color de ojos</label>
+                                <select name="eyes" required>
+                                    <option value="" disabled selected>Elige un color de ojos</option>
+                                    <option value="1">Marrón</option>
+                                    <option value="2">Verde</option>
+                                    <option value="3">Azul</option>
+                                    <option value="4">Rojo</option>
+                                    <option value="5">Negro</option>
+                                    <option value="6">Amarillo</option>
+                                    <option value="7">Gris</option>
+                                    <option value="8">Heterocromía</option>
+                                </select>
+                            </div>
+                            <div class="form-input">
+                                <label for="size">Tamaño</label>
+                                <select name="size" required>
+                                    <option value="" disabled selected>Elige una tamaño</option>
+                                    <option value="1">Enano</option>
+                                    <option value="2">Pequeño</option>
+                                    <option value="3">Mediano</option>
+                                    <option value="4">Grande</option>
+                                    <option value="5">Gigante</option>
+                                </select>
+                            </div>
+                            <div class="form-input">
+                                <label for="identification">Identificación</label>
+                                <select name="identification" required>
+                                    <option value="" disabled selected>Elige una opción</option>
+                                    <option value="1">Con collar</option>
+                                    <option value="2">Sin collar</option>
+                                </select>
+                            </div>
+                            <div class="form-input">
                                 <label for="decription">Descripción</label>
-                                <textarea id="createPostDescription" name="description" placeholder="Estado de salud, lugar del encuentro, algo que creas destacable..."></textarea>
+                                <textarea id="createPostDescription" name="description" placeholder="Estado de salud, lugar del encuentro, algo que creas destacable..." required></textarea>
                             </div>
                             <div class="profile-form_file">
                                 <label for="animal photo">Foto del animal</label>
-                                <input id="createPostImage" name="image" type="file">
+                                <input id="createPostImage" name="image" type="file" required required>
                             </div>
                             <div class="profile-form_button">
                                 <button class="cancel-button-profile">Cancelar</button>
@@ -500,11 +656,11 @@ async function renderEditPost(postId) {
                                 <form id="editPostForm" data-post-id="${postId}" data-animal-id="${animalId}" data-animal-image-name="${animalImageName}">
                                     <div class="form-input">
                                         <label for="name">Nombre</label>
-                                        <input type="text" name="name" value="${currentPost.name}">
+                                        <input type="text" name="name" value="${currentPost.name}" required>
                                     </div>
                                     <div class="form-input">
                                         <label for="specie">Especie</label>
-                                        <select name="specie" id="editPostSpecie">`;
+                                        <select name="specie" id="editPostSpecie" required>`;
     speciesBreedsData.forEach(element => {
         if (!seenSpecies.has(element.specie_name)) {
             seenSpecies.add(element.specie_name);
@@ -516,12 +672,12 @@ async function renderEditPost(postId) {
                     </div>
                     <div class="form-input">
                         <label for="breed">Raza</label>
-                        <select name="breed" id="editPostBreed">
+                        <select name="breed" id="editPostBreed" required>
                         </select>
                             </div>
                             <div class="form-input">
                                 <label for="age">Edad aproximada</label>
-                                <select name="age" id="editPostAge">
+                                <select name="age" id="editPostAge" required>
                                     <option value="1">Cría</option>
                                     <option value="2">Junior</option>
                                     <option value="3">Adulto</option>
@@ -529,22 +685,63 @@ async function renderEditPost(postId) {
                                 </select>
                             </div>
                             <div class="form-input">
+                                <label for="hair">Color del pelo</label>
+                                <select name="hair" required>
+                                    <option value="1">Negro</option>
+                                    <option value="2">Blanco</option>
+                                    <option value="3">Marrón</option>
+                                    <option value="4">Gris</option>
+                                    <option value="5">Varios colores</option>
+                                    <option value="5">Otros</option>
+                                </select>
+                            </div>
+                            <div class="form-input">
+                                <label for="eyes">Color de ojos</label>
+                                <select name="eyes" required>
+                                    <option value="1">Marrón</option>
+                                    <option value="2">Verde</option>
+                                    <option value="3">Azul</option>
+                                    <option value="4">Rojo</option>
+                                    <option value="5">Negro</option>
+                                    <option value="6">Amarillo</option>
+                                    <option value="7">Gris</option>
+                                    <option value="8">Heterocromía</option>
+                                </select>
+                            </div>
+                            <div class="form-input">
+                                <label for="size">Tamaño</label>
+                                <select name="size" required>
+                                    <option value="1">Enano</option>
+                                    <option value="2">Pequeño</option>
+                                    <option value="3">Mediano</option>
+                                    <option value="4">Grande</option>
+                                    <option value="5">Gigante</option>
+                                </select>
+                            </div>
+                            <div class="form-input">
                                 <label for="sex">Sexo</label>
-                                <select name="sex" id="editPostSex">
+                                <select name="sex" id="editPostSex" required>
                                     <option value="1">Hembra</option>
                                     <option value="2">Macho</option>
                                 </select>
                             </div>
                             <div class="form-input">
+                                <label for="identification">Identificación</label>
+                                <select name="identification" required>
+                                    <option value="1">Con collar</option>
+                                    <option value="2">Sin collar</option>
+                                </select>
+                            </div>
+                            <div class="form-input">
                                 <div class="form-input">
                                     <label for="decription">Descripción</label>
-                                    <textarea name="description">${currentPost.description}</textarea>
+                                    <textarea name="description" required>${currentPost.description}</textarea>
                                 </div>
                             </div>
                             <div class="profile-form_file">
                                 <label for="editPostImage">Foto del animal</label>
                                 <img id="imagePreview" src="../storage/${currentPost.animal_image}" alt="${currentPost.name}" />
-                                <input id="editPostImage" type="file" name="image" />
+                                <input id="editPostImage" type="file" name="image" required>
                             </div>
                             <div class="profile-form_button">
                                 <button class="cancel-button-profile">Cancelar</button>
@@ -584,27 +781,31 @@ async function renderEditPost(postId) {
     addSelectedElement(currentSex, '#editPostSex');
     addSelectedElement(currentSpecie, '#editPostSpecie');
     addSelectedElement(currentBreed, '#editPostBreed');
-
-
 }
 
 async function renderShowPost(postId) {
     const postsData = await getAllPosts();
-    
+
+    //notificationButton se gestiona en discover.js
+    const interestButton = document.querySelector('.user-profile-main') ? '<button class="interest-button" id="notificationButton">Me interesa</button>' : '';
     const currentPost = postsData.find(post => post.post_id == postId);
+    const animalId = currentPost.animal_id;
 
     let animalImage = (!currentPost.animal_image) ? "assets/img-ej.JPG" : `../storage/${currentPost.animal_image}`;
 
-    const animalPost = `<div class="animal-post_container">
+    const animalPost = `<div class="animal-post_container" data-animal-id="${animalId}">
                             <div class="animal-post">
                                 <div class="animal-post_img">
                                     <img src="${animalImage}" alt="${currentPost.name}">
                                 </div>
                                 <div class="animal-post_content">
                                     <h1>${currentPost.name}</h1>
-                                    <p>Raza, ${currentPost.age} años</p>
+                                    <p>${currentPost.name} es un ${currentPost.specie}, ${currentPost.sex}, de raza ${currentPost.breed} que actualmente está en la etapa de edad de ${currentPost.age}</p>
                                     <p>${currentPost.description}</p>
-                                    <button class="cancel-button-profile">Cancelar</button>
+                                    <div class="animal-post_buttons">
+                                        ${interestButton}
+                                        <button class="cancel-button-profile">Cancelar</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>`;
@@ -623,34 +824,46 @@ document.addEventListener('click', async(e) => {
         case 'editProfileButton':
             await renderEditProfile();
             break;
+
+        case 'showMailboxButton':
+            renderMailbox();
+            break;
             
         case 'createPostButton':
             renderCreatePost();
-            break;
-            
-        case 'editPostButton':
-            post = e.target.closest('.profile-pics_item[data-value]');
-            postId = post.dataset.value;
-            renderEditPost(postId);
-            break;
-
-        case 'showPostButton':
-            post = e.target.closest('.profile-pics_item[data-value]');
-            postId = post.dataset.value;
-            renderShowPost(postId);
-            break;
-
-        case 'deletePostButton':
-            if (confirm('¿Seguro que quieres eliminar este post?')) {
-                post = e.target.closest('.profile-pics_item');
-                animalId = post.querySelector('.animal-image').dataset.animalId;
-                deletePost(animalId);
-            }
             break;
     }
 
     if (e.target.classList.contains('cancel-button-profile')) {
         formContainer ? formContainer.remove() : postContainer.remove();
+
+    } else if (e.target.classList.contains('show-notification')) {
+        const modal = e.target.closest('.notification-box').querySelector('.hidden-modal');
+        modal.classList.toggle('show');
+
+    } else if (e.target.classList.contains('delete-notification')) {
+        let notification = null;
+        if (confirm('¿Seguro que quieres eliminar esta notificación?')) {
+            notification = e.target.closest('.notification').id;
+            deleteNotification(notification);
+        }
+
+    } else if (e.target.classList.contains('edit-post-button')) {
+        post = e.target.closest('.profile-pics_item[data-value]');
+        postId = post.dataset.value;
+        renderEditPost(postId);
+
+    } else if (e.target.classList.contains('show-post-button')) {
+        post = e.target.closest('.profile-pics_item[data-value]');
+        postId = post.dataset.value;
+        renderShowPost(postId);
+
+    } else if (e.target.classList.contains('delete-post-button')) {
+        if (confirm('¿Seguro que quieres eliminar este post?')) {
+            post = e.target.closest('.profile-pics_item');
+            animalId = post.querySelector('.animal-image').dataset.animalId;
+            deletePost(animalId);
+        }
     }
 });
 

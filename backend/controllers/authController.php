@@ -58,8 +58,8 @@ switch ($data->endpoint) {
             sendHttpError(500, 'error on register');
         }
 
-        $sql = 'INSERT INTO users (name, surname, phone, email, password) VALUES (:name, :surname, :phone, :email, :password)';
-        $res = $db->request($sql, ['name' => $name, 'surname' => $surname, 'phone' => $phone, 'email' => $email, 'password' => $password]);
+        $sql = 'INSERT INTO users (name, surname, phone, email, role, password) VALUES (:name, :surname, :phone, :email, :role, :password)';
+        $res = $db->request($sql, ['name' => $name, 'surname' => $surname, 'phone' => $phone, 'email' => $email, 'role' => $data->role, 'password' => $password]);
         
         if ($res) {
             $userId = $db->lastInsertId();

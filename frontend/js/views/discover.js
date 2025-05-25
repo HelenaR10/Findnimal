@@ -37,13 +37,13 @@ async function getRenderOrganizations(search, filter) {
     }, 1000);
 }
 
-async function getOrganizationProfile(userId) {
+async function getRenderOrganizationProfile(userId) {
     showLoader();
 
     const token = getAuthToken();
 
         try {
-            const response = await fetch('../backend/controllers/profileController.php', {
+            const response = await fetch('../backend/controllers/discoverController.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -51,6 +51,7 @@ async function getOrganizationProfile(userId) {
                 },
                 body: JSON.stringify({
                     endpoint: 'getOrganizationProfile',
+                    userId : userId,
                 })
             });
 
@@ -65,11 +66,83 @@ async function getOrganizationProfile(userId) {
             
             const receiveData = await response.json();
             removeLoader();
-            return receiveData.data;
+            const postData = await getOrganizationPosts(userId);
+            renderOrganizationProfile(receiveData.data, postData);
 
         } catch (error) {
             console.error('Error:', error.message);
         }
+}
+
+async function getOrganizationPosts(userId) {
+
+    const token = getAuthToken();
+
+    try {
+        const response = await fetch('../backend/controllers/discoverController.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                endpoint: 'getOrganizationPosts',
+                userId: userId
+            })
+        });
+
+        if (response.status === 401) {
+            logout();
+            alert('Sesión expirada, inicia sesión');
+        }
+
+        if (!response.ok) {
+            throw new Error('No se encontraron coincidencias');
+        }
+        
+        const receiveData = await response.json();
+
+        return receiveData.data;
+
+    } catch (error) {
+        console.error('Error:', error.message);
+    }
+}
+
+async function saveNotification(animalId, senderUserId = null) {
+    const token = getAuthToken();
+
+    try {
+        const response = await fetch('../backend/controllers/discoverController.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                endpoint: 'saveNotification',
+                animalId: animalId,
+                senderUserId: senderUserId
+            })
+        });
+
+        if (response.status === 401) {
+            logout();
+            alert('Sesión expirada, inicia sesión');
+        }
+
+        if (!response.ok) {
+            throw new Error('No se encontraron coincidencias');
+        }
+        
+        const receiveData = await response.json();
+        document.querySelector('.animal-post_container').remove();
+
+        return receiveData.data;
+
+    } catch (error) {
+        console.error('Error:', error.message);
+    }
 }
 
 function renderDiscover() {
@@ -120,6 +193,10 @@ function renderOrganizations(organizations) {
     let organizationContainer = document.querySelector('.search-container_results');
     let organizationsHTML = '';
 
+    let organizationButton = (checkAuth() === true) ? 
+                            '<button class="show-profile-button">Ver perfil</button>' : 
+                            '<p>Regístrate para ver su perfil</p>';
+
     for (let key in organizations) {
         const currentOrganization = organizations[key];
 
@@ -130,15 +207,15 @@ function renderOrganizations(organizations) {
         currentOrganization.species.forEach(specie => {
             
             switch (specie.name) {
-                case 'Perro':
+                case 'perro':
                     dogsCount = specie.count;
                     break;
 
-                case 'Exótico':
+                case 'exótico':
                     exoticsCount = specie.count;
                     break;
 
-                case 'Gato':
+                case 'gato':
                     catsCount = specie.count;
                     break;
             }
@@ -150,7 +227,7 @@ function renderOrganizations(organizations) {
                                     <img src="assets/icons/Subtract.png" alt="ubicacion">
                                     <p>${currentOrganization.location}</p>
                                 </div>
-                                <button id="showProfileButton">Ver perfil</button>
+                                ${organizationButton}
                                 <div class="box-data_animals">
                                     <div class="animal-item">
                                         <p>${dogsCount}</p>
@@ -171,16 +248,17 @@ function renderOrganizations(organizations) {
     organizationContainer.innerHTML= organizationsHTML;
 }
 
-function renderUserProfile() {
+function renderOrganizationProfile(userData, postsData) {
     const main = document.querySelector('main');
-
-    let HTMLcontent = '<div class="profile-main">';
+    let HTMLcontent = `<div class="user-profile-main">`;
 
         let roleName = (userData.role === 2) ? 'Protectora de animales' : 'Usuario';
 
-        HTMLcontent += `<div class="profile-data_person">
-                            <!-- <img src="assets/icons/destellos.png" alt="flashes" class="flashes-profile"> -->
-                            <h1>Hola, <span class="home-cover_title-red">${userData.userName}</span></h1>
+        HTMLcontent += `<div class="top-profile-content">
+                            <img src="assets/icons/back-arrow-icon.svg" class="back-arrow-icon" id="goBackButton">
+                            <h1 class="home-cover_title-red">${userData.userName}</h1>
+                        </div>
+                        <div class="profile-data_person">
                             <div class="data_person_img">
                                 <img src="../storage/user/${userData.image}" alt="image profile">
                             </div>
@@ -207,7 +285,11 @@ function renderUserProfile() {
                         </div>
             
                         <div class="profile-data_buttons">
-                            <button id="sendMessageButton">Enviar un mensaje</button>
+                            <button id="contactButton">Contacto</button>
+                            <div class="contact-data hidden-modal">
+                                <p>${userData.email}</p>
+                                <p>${userData.phone}</p>
+                            </div>
                         </div>
             
                         <div class="profile-pics">
@@ -225,7 +307,7 @@ function renderUserProfile() {
             HTMLcontent += `<div class="profile-pics_item" data-value="${post.post_id}">
                                 <img src="../storage/${post.animal_image}" alt="${post.name}" class="animal-image" data-animal-id="${post.animal_id}">
                                 <div class="pics_item-buttons">
-                                    <img src="assets/icons/eye-icon.svg" alt="edit-icon" id="showUserPostButton" class="action-icon">
+                                    <img src="assets/icons/eye-icon.svg" alt="show-icon" class="action-icon show-post-button">
                                 </div>
                             </div>`;
         });
@@ -250,6 +332,7 @@ function selectedFilters() {
 
 let currentSearchText = '';
 let currentFilters = [];
+
 document.addEventListener('click', (e) => {
 
     switch (e.target.id) {
@@ -257,10 +340,21 @@ document.addEventListener('click', (e) => {
             currentSearchText = document.querySelector('#searchInput').value;
             getRenderOrganizations(currentSearchText, currentFilters);
             break;
-    
-        case 'showProfileButton':
-            const organizationId = e.target.closest('.search-container_results-box').dataset.userId;
-            getOrganizationProfile(organizationId);
+
+        case 'goBackButton':
+            renderDiscover();
+            break;
+
+        case 'contactButton':
+            const contact = document.querySelector('.contact-data');
+            contact.classList.toggle('hidden-modal');
+            break;
+        
+        case 'notificationButton': 
+        if (confirm('Al "Confirmar", tus datos de contacto serán enviados a la organización responsable de esta mascota para que puedan ponerse en contacto contigo. ¿Deseas continuar?')) {
+            const animalId = e.target.closest('.animal-post_container').dataset.animalId;
+            saveNotification(animalId);
+        }
             break;
     }
 
@@ -274,5 +368,9 @@ document.addEventListener('click', (e) => {
         e.target.classList.toggle('selected');
         currentFilters = selectedFilters();
         getRenderOrganizations(currentSearchText, currentFilters);
+
+    } else if (e.target.classList.contains('show-profile-button')) {
+        let organizationId = e.target.closest('.search-container_results-box').dataset.userId;
+        getRenderOrganizationProfile(organizationId);
     }
 });

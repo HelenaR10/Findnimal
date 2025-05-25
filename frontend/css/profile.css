@@ -36,11 +36,12 @@
     display: flex;
     align-items: center;
     margin-top: 20px;
+    overflow: hidden;
+    border: 1px solid;
+    border-radius: 100%;
     
     img {
         width: 100%;
-        border: 1px solid black;
-        border-radius: 100%;
     }
 }
 .localization-person {
@@ -79,7 +80,17 @@
     }
 }
 .profile-data_buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 10px 20px 30px;
+}
+.settings-icon {
+    width: 4%;
+    img {
+        width: 100%;
+        cursor: pointer;
+    }
 }
 .profile-pics {
     width: 100%;
@@ -138,12 +149,13 @@
 } 
 .profile-pics_item:hover .pics_item-buttons{
     position: absolute;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    justify-items: center;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+
 
     .action-icon {
-        width: 40%;
+        width: 20%;
         border: 1px solid white;
         border-radius: 100%;
         padding: 5px;
@@ -157,25 +169,23 @@
 
 /*FORMS PROFILE*/
 .profile-form_container {
-    width: 100%;
-    z-index: 1;
     position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    right: 0;
+    top: 0; bottom: 0; left: 0; right: 0;
+    z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
     background-color: rgba(0, 0, 0, 0.8);
+    overflow-y: auto;
+    padding: 40px 20px;
 }
 .profile-form {
-    height: 950px;
+    max-height: 100%;
+    overflow-y: auto;
     width: 40%;
     display: flex;
     flex-direction: column; 
     align-items: center;
-    justify-content: center;
     padding: 20px;
     gap: 10px;
     border: 1px solid black;
@@ -192,6 +202,7 @@
         text-align: left;
     }
 }
+
 .profile-form_title {
     position: relative;
     img {
@@ -270,6 +281,7 @@
     background-color: beige;
     border: 1px solid black;
     border-radius: 5%;
+    overflow: hidden;
 }
 
 .animal-post_img {
@@ -290,4 +302,89 @@
     h1 {
         font-size: 40px;
     }
+}
+.animal-post_buttons {
+    display: flex;
+    gap: 5px;
+}
+
+/*MAILBOX*/
+.mailbox-container {
+    width: 50%;
+    height: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    justify-content: space-between;
+    padding: 30px;
+    background-color: #C0D0ED;
+    border-radius: 20px;
+    text-align: center;
+    overflow-y: auto;
+}
+.notifications-container {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+.notification-box {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.notification {
+    display: flex;
+    width: 80%;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px;
+    background-color: white;
+    border: 1px solid black;
+    border-radius: 5px;
+
+    img {
+        width: 100%;
+        height: 100%;
+    }
+}
+.notification-img{
+    display: flex;
+    width: 80px;
+    height: 80px;
+    border-radius: 100%;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+.notification-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.notification-modal {
+    display: flex;
+    flex-direction: column;
+}
+.hidden-modal {
+  display: none;
+  width: 80%;
+  background-color: #f1f1f1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+
+  ul {
+    padding: 0;
+  }
+}
+.hidden-modal.show {
+  display: block;
 }

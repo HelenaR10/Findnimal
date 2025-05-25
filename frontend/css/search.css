@@ -28,9 +28,9 @@
     }
 }
 .search-flashes {
-    width: 5%;
+    width: 3%;
     position: absolute;
-    left: 490px;
+    left: 700px;
     bottom: 200px;
 }
 .search-arrow {
@@ -153,5 +153,43 @@
         box-shadow: unset;
         border: 0;
         background-color: white;
+    }
+}
+
+/*USER PROFILE*/
+.user-profile-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background-color: var(--color-blue);
+}
+.top-profile-content {
+    width: 90%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    align-items: center;
+}
+.back-arrow-icon {
+    width: 15%;
+    cursor: pointer;
+}
+.contact-data {
+    position: absolute;
+    background-color: white;
+    border: 1px solid;
+    border-radius: 5%;
+    margin-top: 2px;
+    font-family: var(--main-font);
+
+    p {
+        padding: 8px;
+    }
+
+    p:hover {
+        width: 100%;
+        cursor: pointer;
+        color: white;
+        background-color: var(--color-red);
     }
 }

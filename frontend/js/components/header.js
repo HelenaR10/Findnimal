@@ -1,7 +1,6 @@
 function renderHeader(isAuth) {
     let buttonText = isAuth ? 'perfil' : 'login';
-    let longinLinks = `<li class="nav-item" id="rescue-navbar">Rescata</li>
-                        <li class="logout-item" id="logout-navbar">Logout</li>`;
+    let longinLinks = '<li class="logout-item" id="logout-navbar">Logout</li>';
     
     const header = `<header>
                         <nav>
@@ -48,12 +47,6 @@ document.addEventListener('click', async (e) => {
 
         case e.target.id === 'find-navbar':
             renderFindForm();
-            renderFooter();
-            changeHeaderColor('var(--color-green)');
-            break;
-        
-        case e.target.id === 'rescue-navbar':
-            renderRescueForm();
             renderFooter();
             changeHeaderColor('var(--color-green)');
             break;

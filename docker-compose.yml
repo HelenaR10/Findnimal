@@ -1,0 +1,27 @@
+# version: '3'
+
+# services:
+#   app:
+#     build: .
+#     ports:
+#       - "80:80"
+#     environment:
+#       - JWT_SECRET_KEY=QArM090/vMo/LsCScokIUCL/lhben0XfUsmqgAd0hy0=
+#       - DB_HOST=db
+#       - DB_USER=root
+#       - DB_PASSWORD=1234
+#       - DB_NAME=findnimal
+#       - DB_PORT=3306
+#     depends_on:
+#       - db
+
+#   db:
+#     image: mysql:8.0
+#     environment:
+#       - MYSQL_ROOT_PASSWORD=1234
+#       - MYSQL_DATABASE=findnimal
+#     volumes:
+#       - mysql_data:/var/lib/mysql
+
+# volumes:
+#   mysql_data: 

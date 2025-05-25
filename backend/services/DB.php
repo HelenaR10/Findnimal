@@ -20,8 +20,6 @@ class DB {
     }
 
     public function request($sql, $data = []) {
-        // var_dump($sql, $data);
-        // die;
         try {
             $stmt = $this->conn->prepare($sql);
             

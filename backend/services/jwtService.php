@@ -30,6 +30,10 @@ function decodeTokenJWT() {
     
     try {
         $token = getHeaderToken();
+        
+        if (!$token) {
+            return null;
+        }
 
         return JWT::decode($token, new Key(base64_decode(JWT_SECRET_KEY), 'HS256'));
     

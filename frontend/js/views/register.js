@@ -19,8 +19,8 @@ async function register(userData) {
 
       localStorage.setItem('token', receiveData.data.token);
 
+      alert('Registro exitoso');
       renderMain();
-      console.log(receiveData);
 
     } catch (error) {
       console.error('Error:', error.message);
@@ -51,6 +51,15 @@ function renderRegister() {
                                     <input type="tel" id="registerPhone" required>
                                     <p class="error-message">Introduce un teléfono válido (9 cifras)</p>
                                 </div>
+                                <div class="form-input role-input">
+                                    <label for="role">Tipo de perfil</label>
+                                    <select id="registerRole" required>
+                                        <option value="" disabled selected required>Elige el tipo de perfil</option>
+                                        <option value="1">Usuario</option>
+                                        <option value="2">Organización</option>
+                                    </select>
+                                    <p class="error-message">Introduce un tipo de usuario válido</p>
+                                </div>
                                 <div class="form-input password-input">
                                     <label for="password">Contraseña</label>
                                     <input type="password" id="registerPassword" required>
@@ -76,6 +85,7 @@ document.addEventListener('submit', (e) => {
     let userPhone;
     let userPassword;
     let userRepeatedPassword;
+    let userRole;
 
     if (e.target.id === 'registerForm') {
         const registerForm = e.target;
@@ -88,6 +98,7 @@ document.addEventListener('submit', (e) => {
         const passwordErrorMessage = registerForm.querySelector('.password-input p');
         userRepeatedPassword = registerForm.querySelector('#registerRepeatedPassword').value;
         const repitedPassErrorMessage = registerForm.querySelector('.repeat-password-input p');
+        userRole = registerForm.querySelector('#registerRole').value;
 
         const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,16}$/;
         const phoneRegex = /^\d{9}$/;
@@ -95,8 +106,6 @@ document.addEventListener('submit', (e) => {
         const isPhoneValid = phoneRegex.test(userPhone);
         const isPassValid = passwordRegex.test(userPassword);
         const arePassEquals = userPassword === userRepeatedPassword;
-        console.log(userRepeatedPassword);
-        console.log(userPassword);
 
         phoneErrorMessage.style.display = (isPhoneValid) ? 'none' : 'block';
         passwordErrorMessage.style.display = (isPassValid) ? 'none' : 'block';
@@ -108,7 +117,8 @@ document.addEventListener('submit', (e) => {
                 surname: userSurname,
                 phone: userPhone,
                 email: userEmail,
-                password: userPassword
+                password: userPassword,
+                role: userRole
             }
             
             register(userData);

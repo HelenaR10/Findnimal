@@ -20,7 +20,6 @@ if ($data && isset($data->endpoint)) {
                     JOIN species s ON s.id = specie_id";
 
             $data = $db->request($sql);
-
             sendHttpSuccess($data);
 
             break;
@@ -31,7 +30,7 @@ if ($data && isset($data->endpoint)) {
 
             $db = new DB();
 
-            $userId = (is_integer($jwtData->data->id)) ? $jwtData->data->id : null;
+            $userId = (is_numeric($jwtData->data->id)) ? $jwtData->data->id : null;
 
             $sql = "SELECT
                     u.name AS user_name,
@@ -43,7 +42,7 @@ if ($data && isset($data->endpoint)) {
                     a.specie_id,
                     a.id AS animal_id
                     FROM users u
-                    JOIN animals a ON a.user_id = u.id
+                    LEFT JOIN animals a ON a.user_id = u.id
                     WHERE u.id = :id
                     GROUP BY a.id
                     ORDER BY a.name";
@@ -106,7 +105,7 @@ if ($data && isset($data->endpoint)) {
 
             $db = new DB();
 
-            $userId = (is_integer($jwtData->data->id)) ? $jwtData->data->id : null;
+            $userId = (is_numeric($jwtData->data->id)) ? $jwtData->data->id : null;
 
             $sql = "SELECT
                     p.id AS post_id,
@@ -126,7 +125,34 @@ if ($data && isset($data->endpoint)) {
 
             $data = $db->request($sql, ['id' => $userId]);
 
-            sendHttpSuccess($data);
+            $posts = [];
+
+            foreach($data as $post) {
+
+                $sql = "SELECT
+                    b.name AS breed,
+                    s.name AS specie
+                    FROM breeds b
+                    LEFT JOIN species s ON b.specie_id = s.id
+                    WHERE b.id = :breed_id";
+
+                $specieBreed = $db->request($sql, ['breed_id' => $post->breed_id])[0];
+
+                $posts[] = [
+                    'post_id' => $post->post_id,
+                    'user_id' => $post->user_id,
+                    'animal_id' => $post->animal_id,
+                    'specie' => $specieBreed->specie,
+                    'breed' => $specieBreed->breed,
+                    'sex' => SEX_MAP[$post->sex],
+                    'age' => AGE_MAP[$post->age],
+                    'name' => $post->name,
+                    'description' => $post->description,
+                    'animal_image' => $post->animal_image
+                ];
+            }
+
+            sendHttpSuccess($posts);
             break;
 
             case 'deletePost':
@@ -141,6 +167,77 @@ if ($data && isset($data->endpoint)) {
                 sendHttpSuccess();
 
                 break;
+            
+            case 'getMailBoxData':
+            
+                $jwtData = decodeTokenJWT();
+
+                $db = new DB();
+
+                $userId = (is_numeric($jwtData->data->id)) ? $jwtData->data->id : null;
+
+                $sql = "SELECT id, sender_user_id, animal_id FROM notifications WHERE dest_user_id = :dest_user_id order by id";
+
+                $notifications = $db->request($sql, ['dest_user_id' => $userId]);
+                
+                if (empty($notifications)) {
+                    sendHttpSuccess([]);
+                    return;
+                }
+
+                $mailBoxData = [];
+
+                foreach ($notifications as $notification) {
+
+                    $sql = "SELECT
+                            u.name AS user_name,
+                            u.surname,
+                            u.phone,
+                            u.email,
+                            u.image AS user_image
+                            FROM users u
+                            WHERE u.id = :sender_user_id
+                            ORDER BY u.name";
+                    
+                    $senderUserData = $db->request($sql, ['sender_user_id' => $notification->sender_user_id])[0];
+
+                    $sql = "SELECT
+                            a.name AS animal_name,
+                            a.animal_image
+                            FROM animals a
+                            WHERE a.id = :animal_id
+                            ORDER BY a.name";
+                    
+                    $animalData = $db->request($sql, ['animal_id' => $notification->animal_id])[0];
+
+                    $mailBoxData[] = [
+                        'notificationId' => $notification->id,
+                        'senderName' => $senderUserData->user_name,
+                        'senderSurname' => $senderUserData->surname,
+                        'senderEmail' => $senderUserData->email,
+                        'senderPhone' => $senderUserData->phone,
+                        'senderImage' => $senderUserData->user_image,
+                        'animalName' => $animalData->animal_name,
+                        'animalImage' => $animalData->animal_image,
+                    ];
+                }
+                
+                sendHttpSuccess($mailBoxData);
+                break;
+
+            case 'deleteNotification':
+
+                $notificationId = $data->notificationId;
+
+                $db = new DB();
+
+                $sql = "DELETE FROM notifications WHERE id = :id";
+
+                $data = $db->request($sql, ['id' => $notificationId]);
+
+                sendHttpSuccess();
+
+                break;
     }  
 }
 
@@ -150,16 +247,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['endpoint'])) {
 
         case 'createPost':
             $jwtData = decodeTokenJWT();
-            $userId = (is_integer($jwtData->data->id)) ? $jwtData->data->id : null;
+            $userId = (is_numeric($jwtData->data->id)) ? $jwtData->data->id : null;
 
             $db = new DB();
 
-            $name = filter_var($_POST['name']) ?? null;
+            $name = strip_tags($_POST['name']) ?? null;
             $breedId = $_POST['breed'] ?? null;
             $specieId = $_POST['specie'] ?? null;
+            $hairColor = $_POST['hair'];
+            $eyesColor = $_POST['eyes'];
+            $size = $_POST['size'];
             $age = $_POST['age'] ?? null;
             $sex = $_POST['sex'] ?? null;
-            $description = filter_var($_POST['description']) ?? null;
+            $identification = $_POST['identification'];
+            $description = strip_tags($_POST['description']) ?? null;
 
             try {
                 if (!isset($_FILES['image']) && $_FILES['image']['error'] !== 0) { 
@@ -189,18 +290,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['endpoint'])) {
                 $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/findnimal/storage/';
                 $imagePath = $uploadDir . $imageName;
 
-                $sql = "INSERT INTO animals (user_id, breed_id, specie_id, name, age, sex, description, animal_image) 
-                        VALUES (:user_id, :breed_id, :specie_id, :name, :age, :sex, :description, :animal_image)";
+                $sql = "INSERT INTO animals (user_id, name, breed_id, specie_id, hair_color, eye_color, size, age, sex, identification, description, animal_image, status)
+                VALUES (:user_id, :name, :breed_id, :specie_id, :hair, :eyes, :size, :age, :sex, :identification, :description, :animal_image, :status)";
                 
                 $params = $db->request($sql, [
                     'user_id' => $userId,
-                    'breed_id' => $breedId, 
-                    'specie_id' => $specieId, 
-                    'name' => $name, 
-                    'age' => $age, 
-                    'sex' => $sex, 
-                    'description' => $description, 
-                    'animal_image' => $imageName
+                    'name' => $name,
+                    'breed_id' => $breedId,
+                    'specie_id' => $specieId,
+                    'hair' => $hairColor,
+                    'eyes' => $eyesColor,
+                    'size' => $size,
+                    'age' => $age,
+                    'sex' => $sex,
+                    'identification' => $identification,
+                    'description' => $description,
+                    'animal_image' => $imageName,
+                    'status' => 2,
                 ]);
                 
                 $animalId = $db->lastInsertId();
@@ -228,7 +334,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['endpoint'])) {
                     ]
                 ];
 
-                if ($result->rowCount() !== false) {
+                if ($result->rowCount() !== 0) {
                     sendHttpSuccess($postData);
                 } else {
                     sendHttpError(500);
@@ -242,18 +348,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['endpoint'])) {
 
         case 'editPost':
             $jwtData = decodeTokenJWT();
-            $userId = (is_integer($jwtData->data->id)) ? $jwtData->data->id : null;
+            $userId = (is_numeric($jwtData->data->id)) ? $jwtData->data->id : null;
 
             $db = new DB();
             $postId = ($_POST['postId']);
             $animalId = ($_POST['animalId']);
             $animalImageName = ($_POST['animalImageName']);
-            $name = filter_var($_POST['name']) ?? null;
+            $name = strip_tags($_POST['name']) ?? null;
             $breedId = $_POST['breed'] ?? null;
             $specieId = $_POST['specie'] ?? null;
             $age = $_POST['age'] ?? null;
             $sex = $_POST['sex'] ?? null;
-            $description = filter_var($_POST['description']) ?? null;
+            $description = strip_tags($_POST['description']) ?? null;
 
             try {
                 $oldImagePath = $_SERVER['DOCUMENT_ROOT'] . "/findnimal/storage/$animalImageName";
@@ -349,15 +455,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['endpoint'])) {
 
         case 'editProfile':
             $jwtData = decodeTokenJWT();
-            $userId = (is_integer($jwtData->data->id)) ? $jwtData->data->id : null;
+            $userId = (is_numeric($jwtData->data->id)) ? $jwtData->data->id : null;
 
             $db = new DB();
 
             $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL) ? $_POST['email'] : null;
-            $name = filter_var($_POST['name']) ?? null;
-            $surname = filter_var($_POST['surname']) ?? null;
+            $name = strip_tags($_POST['name']) ?? null;
+            $surname = strip_tags($_POST['surname']) ?? null;
             $phone = preg_match(VALIDATION_PHONE_REGEX, $_POST['phone']) ? $_POST['phone'] : null;
-            $location = filter_var($_POST['location']) ?? null;
+            $location = strip_tags($_POST['location']) ?? null;
             $role = is_numeric($_POST['role']) ? (int)$_POST['role'] : null;
             $userImage = ($_POST['userImage']);
 

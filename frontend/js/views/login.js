@@ -2,7 +2,7 @@ async function login(email, password) {
     const errorMessage = document.querySelector('.form-input .error-message');
 
     try {
-      const response = await fetch('../backend/controllers/authController.php', {
+      const response = await fetch('/findnimal/backend/controllers/authController.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -61,10 +61,10 @@ function renderLogin() {
                                     <button type="submit" id="loginButton">Entrar</button>
                                 </form>
                             
-                                <h3>¿Has encontrado un animal perdido?</h3>
+                                <h3>¿Has perdido a tu amigo?</h3>
                                 <div class="lost-form">
                                     <img src="assets/icons/login-arrow.svg" alt="">
-                                    <p class="help-here">Ayúdale a encontrar su hogar</p>
+                                    <p class="help-here">Te ayudamos a encontrarle</p>
                                 </div>
                                 <div class="register-form">
                                     <p>¿Aún no eres de los nuestros?</p>
@@ -85,7 +85,7 @@ document.addEventListener('click', (e) => {
             break;
 
         case e.target.classList.contains('help-here'):
-            renderRescueForm();
+            renderFindForm();
             renderFooter();
             changeHeaderColor('var(--color-green)');
             break;
