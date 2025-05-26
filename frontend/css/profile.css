@@ -32,7 +32,8 @@
     left: 340px;
 }
 .data_person_img {
-    width: 15%; 
+    width: 150px; 
+    height: 150px;
     display: flex;
     align-items: center;
     margin-top: 20px;
@@ -388,3 +389,71 @@
 .hidden-modal.show {
   display: block;
 }
+
+
+@media (min-width: 768px) and (max-width: 1024px) {
+    .profile-pics_container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .profile-form, .mailbox-container, .animal-post {
+        width: 80%;
+    }
+}
+
+/* Mobile Media Query */
+@media (max-width: 767px) {
+    .profile-data_person {
+        h1 {
+            font-size: 40px;
+        }
+
+        h3 {
+            font-size: 20px;
+        }
+    }
+
+    .profile-data_buttons {
+        padding: 0 20px 30px;
+    }
+
+    .settings-icon {
+        width: 10%;
+    }
+
+    .profile-pics_filter {
+        ul {
+            gap: 50px;
+        }
+    }
+
+    .profile-pics_container {
+        width: 80%;
+        grid-template-columns: repeat(1, 1fr);
+        gap: 20px;
+    }
+
+    .profile-form {
+        width: 100%;
+
+        label {
+            font-size: 15px;
+        }
+    }
+
+    .profile-form_title {
+        h1 {
+            font-size: 40px;
+        }
+    }
+
+    .animal-post, .mailbox-container {
+        width: 90%;
+        height: 80%;
+    }
+
+    .notification, .hidden-modal {
+        width: 100%;
+    }
+}
+

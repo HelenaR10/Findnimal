@@ -44,3 +44,37 @@ nav {
     transform: scale(1.2);
     color: white;
 }
+
+/* Tablet Media Query */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .nav-logo {
+        width: 20%;
+    }
+}
+
+/* Mobile Media Query */
+@media (max-width: 767px) {
+    nav {
+        padding: 20px 0;
+    }
+
+    .navbar {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        width: 90%;
+        height: auto;
+        border-radius: 100px;
+        border-left: none;
+        border-right: none;
+        overflow: hidden;
+        padding: 0;
+    }
+
+    .nav-button {
+        padding: 20px;
+    }
+
+    .nav-logo {
+        display: none;
+    }
+}

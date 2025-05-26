@@ -86,3 +86,95 @@
         font-size: 20px;
     }
 }
+
+/* Tablet Media Query */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .flashes-icon, .arrow-icon {
+        display: none;
+    }
+
+    .home-cover {
+        width: 100%;
+        gap: 0;
+    }
+
+    .home-cover_title {
+        gap: 0;
+
+        h1 {
+            font-size: 40px;
+        }
+
+        h3 {
+            font-size: 20px;
+        }
+    }
+
+    .home-cover_img {
+        width: 100%;
+    }
+
+    .home-funcionalities_items {
+        width: 100%;
+    }
+}
+
+    /* Mobile Media Query */
+@media (max-width: 767px) {
+    .arrow-icon {
+        display: none;
+    }
+
+    .home-cover {
+        width: 100% !important;
+        display: grid;
+        grid-template-columns: repeat(1, 1fr) !important;
+        gap: 30px !important;
+        justify-items: center;
+        padding: 40px !important;
+    }
+
+    .home-cover_title {
+        gap: 20px !important;
+
+        h1 {
+            font-size: 40px;
+        }
+
+        h3 {
+            font-size: 20px;
+        }
+    }
+
+    .home-funcionalities {
+        h2 {
+            width: 80%;
+        }
+    }
+    .home-funcionalities_items {
+        width: 100% !important;
+        display: grid;
+        grid-template-columns: repeat(1, 1fr) !important;
+    }
+
+    .funcionality-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        box-shadow: none;
+        
+        img {
+            width: 20%;
+        }
+
+        h4 {
+            margin: 10px;
+        }
+
+        p {
+            width: 100%;
+            margin: 10px;
+        }
+    }
+}

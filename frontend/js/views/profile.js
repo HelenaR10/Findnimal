@@ -21,6 +21,7 @@ async function getProfile() {
             }
 
             if (!response.ok) {
+                alert('No se encontraron coincidencias');
                 throw new Error('No se encontraron coincidencias');
             }
             
@@ -55,6 +56,7 @@ async function getAllPosts() {
         }
 
         if (!response.ok) {
+            alert('No se encontraron coincidencias');
             throw new Error('No se encontraron coincidencias');
         }
         
@@ -120,6 +122,7 @@ async function editProfile(profileForm) {
             }
 
             if (!response.ok) {
+                alert('Error al guardar tus datos');
                 throw new Error('No se encontraron coincidencias');
             }
             
@@ -154,6 +157,7 @@ async function getMailbox() {
         }
 
         if (!response.ok) {
+            alert('No se encontraron coincidencias');
             throw new Error('No se encontraron coincidencias');
         }
         
@@ -187,7 +191,8 @@ async function deleteNotification(notificationId) {
         }
 
         if (!response.ok) {
-            throw new Error('No se encontraron coincidencias');
+            alert('Error al eliminar la notificación');
+            throw new Error('Error al eliminar la notificación');
         }
         
         const receiveData = await response.json();
@@ -223,7 +228,8 @@ async function createPost(postForm) {
             }
 
             if (!response.ok) {
-                throw new Error('No se encontraron coincidencias');
+                alert('Error al crear el post');
+                throw new Error('Error al crear el post');
             }
             
             const receiveData = await response.json();
@@ -261,7 +267,8 @@ async function editPost(postForm) {
             }
 
             if (!response.ok) {
-                throw new Error('No se encontraron coincidencias');
+                alert('Error al editar el post');
+                throw new Error('Error al editar el post');
             }
             
             const receiveData = await response.json();
@@ -296,7 +303,8 @@ async function deletePost(animalId) {
             }
 
             if (!response.ok) {
-                throw new Error('No se encontraron coincidencias');
+                alert('Error al eliminar el post');
+                throw new Error('Error al eliminar el post');
             }
             
             const receiveData = await response.json();
@@ -411,7 +419,7 @@ async function renderEditProfile() {
                                 </div>
                                 <div class="form-input">
                                     <label for="email">Email</label>
-                                    <input type="text" id="profileEmail" name="email" value="${userData.email}">
+                                    <input type="email" id="profileEmail" name="email" value="${userData.email}">
                                 </div>
                                 <div class="form-input">
                                     <label for="surname">Teléfono</label>
@@ -634,18 +642,21 @@ function addSelectedElement(element, selector) {
 
 async function renderEditPost(postId) {
     const postsData = await getAllPosts();
-
+    console.log(postsData);
     const currentPost = postsData.find(post => post.post_id == postId);
     const animalId = currentPost.animal_id;
     const animalImageName = currentPost.animal_image;
-    const currentAge = currentPost.age;
-    const currentSex = currentPost.sex;
+    const currentAge = currentPost.age_id;
+    const currentSex = currentPost.sex_id;
     const currentSpecie = currentPost.specie_id;
     const currentBreed = currentPost.breed_id;
+    const currentHair = currentPost.hair_color;
+    const currentEyes = currentPost.eye_color;
+    const currentSize = currentPost.size;
+    const currentIdentification = currentPost.identification;
 
     const speciesBreedsData = await getSpeciesAndBreedsData();
     const seenSpecies = new Set();
-
 
     let editPostForm = `<div class="profile-form_container">
                             <div class="profile-form">
@@ -686,18 +697,18 @@ async function renderEditPost(postId) {
                             </div>
                             <div class="form-input">
                                 <label for="hair">Color del pelo</label>
-                                <select name="hair" required>
+                                <select name="hair" id="editPostHair" required>
                                     <option value="1">Negro</option>
                                     <option value="2">Blanco</option>
                                     <option value="3">Marrón</option>
                                     <option value="4">Gris</option>
                                     <option value="5">Varios colores</option>
-                                    <option value="5">Otros</option>
+                                    <option value="6">Otros</option>
                                 </select>
                             </div>
                             <div class="form-input">
                                 <label for="eyes">Color de ojos</label>
-                                <select name="eyes" required>
+                                <select name="eyes" id="editPostEyes" required>
                                     <option value="1">Marrón</option>
                                     <option value="2">Verde</option>
                                     <option value="3">Azul</option>
@@ -710,7 +721,7 @@ async function renderEditPost(postId) {
                             </div>
                             <div class="form-input">
                                 <label for="size">Tamaño</label>
-                                <select name="size" required>
+                                <select name="size" id="editPostSize" required>
                                     <option value="1">Enano</option>
                                     <option value="2">Pequeño</option>
                                     <option value="3">Mediano</option>
@@ -727,7 +738,7 @@ async function renderEditPost(postId) {
                             </div>
                             <div class="form-input">
                                 <label for="identification">Identificación</label>
-                                <select name="identification" required>
+                                <select name="identification" id="editPostIdentification" required>
                                     <option value="1">Con collar</option>
                                     <option value="2">Sin collar</option>
                                 </select>
@@ -781,6 +792,10 @@ async function renderEditPost(postId) {
     addSelectedElement(currentSex, '#editPostSex');
     addSelectedElement(currentSpecie, '#editPostSpecie');
     addSelectedElement(currentBreed, '#editPostBreed');
+    addSelectedElement(currentHair, '#editPostHair');
+    addSelectedElement(currentEyes, '#editPostEyes');
+    addSelectedElement(currentSize, '#editPostSize');
+    addSelectedElement(currentIdentification, '#editPostIdentification');
 }
 
 async function renderShowPost(postId) {

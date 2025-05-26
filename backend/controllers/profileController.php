@@ -116,6 +116,10 @@ if ($data && isset($data->endpoint)) {
                     a.name,
                     a.age,
                     a.sex,
+                    a.hair_color,
+                    a.eye_color,
+                    a.size,
+                    a.identification,
                     a.description,
                     a.animal_image
                     FROM posts p
@@ -143,12 +147,20 @@ if ($data && isset($data->endpoint)) {
                     'user_id' => $post->user_id,
                     'animal_id' => $post->animal_id,
                     'specie' => $specieBreed->specie,
+                    'specie_id' => $post->specie_id,
                     'breed' => $specieBreed->breed,
+                    'breed_id' => $post->breed_id,
                     'sex' => SEX_MAP[$post->sex],
+                    'sex_id' => $post->sex,
                     'age' => AGE_MAP[$post->age],
+                    'age_id' => $post->age,
                     'name' => $post->name,
                     'description' => $post->description,
-                    'animal_image' => $post->animal_image
+                    'animal_image' => $post->animal_image,
+                    'hair_color' => $post->hair_color,
+                    'eye_color' => $post->eye_color,
+                    'size' => $post->size,
+                    'identification' => $post->identification
                 ];
             }
 

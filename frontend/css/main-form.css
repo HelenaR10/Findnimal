@@ -226,3 +226,64 @@ textarea {
         transform: translateY(-2px);
     }
 }
+
+/* Tablet Media Query */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .flashes-form {
+        display: none;
+    }
+
+    .arrow-form {
+        width: 15%;
+    }
+
+    .form-title {
+        width: 80%;
+        gap: 10px;
+        padding-top: 20px;
+
+        h1 {
+            font-size: 40px;
+        }
+    }
+
+    .main-form {
+        width: 90%;
+        gap: 20px;
+
+        h4 {
+            width: 100%;
+        }
+    }
+}
+
+/* Mobile Media Query */
+@media (max-width: 767px) {
+    .flashes-form {
+        display: none;
+    }
+
+    .form-title {
+        width: 80%;
+        gap: 10px;
+        padding-top: 40px;
+
+        h1 {
+            font-size: 40px;
+        }
+    }
+
+    .main-form {
+        width: 90%;
+        gap: 20px;
+
+        h4 {
+            width: 100%;
+        }
+    }
+    
+    .main-form_item-top { 
+        grid-template-columns: repeat(1, 1fr);
+    }
+}
+

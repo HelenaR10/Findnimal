@@ -5,3 +5,31 @@
     justify-content: space-between;
     align-items: center;
 }
+
+/* Tablet Media Query */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .footer-container {
+        padding: 10px 20px;
+    }
+
+    .footer-logo {
+        width: 150px;
+    }
+}
+
+/* Mobile Media Query */
+@media (max-width: 767px) {
+    .footer-container {
+        align-items: center;
+        padding: 10px;
+        font-size: 10px;
+
+        p {
+            width: 50%;
+        }
+    }
+
+    .footer-logo {
+        width: 100px;
+    }
+}

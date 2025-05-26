@@ -19,6 +19,7 @@ async function saveAnimalUserData(findForm) {
             }
 
             if (!response.ok) {
+                alert('Error al guardar tus datos');
                 throw new Error('No se encontraron coincidencias');
             }
 
@@ -77,25 +78,25 @@ async function renderFindForm() {
     const userData = `<h4>Tus datos</h4>
                         <div class="main-form_item-top">
                             <div class="main-form_item">
-                                    <label for="name">Nombre</label>
-                                    <input type="text" name="name" required>
+                                <label for="name">Nombre</label>
+                                <input type="text" name="name" required  id="findFormName">
                             </div>
                             <div class="main-form_item">
                                 <label for="surname">Apellidos</label>
-                                <input type="text" name="surname" required>
+                                <input type="text" name="surname" required id="findFormSurname">
                             </div>
                             <div class="main-form_item">
                                 <label for="email">Email</label>
-                                <input type="email" name="email" required>
+                                <input type="email" name="email" required id="findFormEmail">
                             </div>
-                            <div class="main-form_item">
+                            <div class="main-form_item phone-input">
                                 <label for="phone">Teléfono</label>
-                                <input type="number" name="phone" required>
+                                <input type="number" name="phone" required id="findFormPhone">
+                                <p class="error-message">Introduce un teléfono válido (9 cifras)</p>
                             </div>
                         </div>`;
 
     const isAuth = checkAuth() ? '' : userData;
-                                    
 
     let HTMLcontent = `<div class="find-main">
                             <div class="form-page">
@@ -266,8 +267,23 @@ document.addEventListener('submit', async(e) => {
     e.preventDefault();
 
     switch (e.target.id) {
+
         case 'findForm':
             const findAnimalForm = e.target;
+
+            // if (checkAuth()) {
+            //     const userPhone = findAnimalForm.querySelector('#findFormPhone').value;
+            //     const phoneErrorMessage = findAnimalForm.querySelector('.phone-input p');
+            //     const phoneRegex = /^\d{9}$/;
+            //     const isPhoneValid = phoneRegex.test(userPhone);
+
+            //     phoneErrorMessage.style.display = (isPhoneValid) ? 'none' : 'block';
+
+            //     if (!isPhoneValid) {
+            //         return;
+            //     }
+            // }
+            
             await saveAnimalUserData(findAnimalForm);
             break;
     }

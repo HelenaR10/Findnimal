@@ -33,3 +33,17 @@
     color: red;
     font-family: var(--main-font);
 }
+
+/* Tablet Media Query */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .register-container {
+        width: 80%;
+    }
+}
+/* Mobile Media Query */
+@media (max-width: 767px) {
+    .register-container {
+        width: 80%;
+    }
+}
+
