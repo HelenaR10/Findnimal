@@ -1,28 +1,56 @@
- FROM php:8.2-apache
+# Usa una imagen base de PHP-FPM para procesar PHP
+FROM php:8.3-fpm
 
-# # Instalar extensiones PHP necesarias y Composer
-# RUN apt-get update && apt-get install -y \
-#     libzip-dev \
-#     zip \
-#     unzip \
-#     && docker-php-ext-install pdo pdo_mysql zip \
-#     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+# Instala Nginx y algunas utilidades necesarias.
+# Asegúrate de incluir las extensiones PHP que tu proyecto necesite.
+RUN apt-get update && apt-get install -y \
+    nginx \
+    git \
+    unzip \
+    libzip-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libwebp-dev \
+    # Incluye otras librerías que necesites, por ejemplo, si usas bzip, etc.
+    && rm -rf /var/lib/apt/lists/*
 
-# # Habilitar mod_rewrite para Apache
-# RUN a2enmod rewrite
+# Instala extensiones de PHP comunes (ajusta según tus necesidades)
+# Si necesitas PostgreSQL, usa 'pdo_pgsql', etc.
+RUN docker-php-ext-install pdo_mysql gd zip exif opcache
 
-# # Copiar el backend y el frontend
-# COPY backend /var/www/html/backend
-# COPY frontend /var/www/html/frontend
+# Instala Composer (el binario 'composer' está en /usr/bin/composer en la imagen de Composer)
+COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 
-# # Configurar el DocumentRoot de Apache para el backend
-# RUN sed -i 's|/var/www/html|/var/www/html/backend|g' /etc/apache2/sites-available/000-default.conf
+# Configura PHP-FPM para que escuche en el puerto 9000 y no se ejecute como demonio
+RUN echo "listen = 9000" >> /usr/local/etc/php-fpm.d/www.conf
+RUN sed -i -e 's/;daemonize = yes/daemonize = no/g' /usr/local/etc/php-fpm.conf
 
-# # Instalar dependencias del backend
-# WORKDIR /var/www/html/backend
-# RUN composer install --no-dev
+# Elimina la configuración predeterminada de Nginx
+RUN rm -f /etc/nginx/sites-enabled/default
 
-# # Exponer el puerto 80
-# EXPOSE 80
+# Copia la configuración personalizada de Nginx
+COPY nginx.conf /etc/nginx/nginx.conf
 
-# CMD ["apache2-foreground"] 
+# Copia los archivos de tu aplicación al contenedor
+# El frontend se servirá desde /var/www/html (DocumentRoot de Nginx)
+COPY frontend/ /var/www/html/
+
+# El backend PHP estará en /var/www/backend
+COPY backend/ /var/www/backend/
+
+# Si usas Composer en el backend, instala las dependencias
+# Asegúrate de que tu `composer.json` esté en la carpeta `backend`
+WORKDIR /var/www/backend
+RUN if [ -f composer.json ]; then composer install --no-dev --optimize-autoloader; fi
+
+# Asegúrate de que los permisos sean correctos para que el servidor web pueda leer/escribir
+RUN chown -R www-data:www-data /var/www/html /var/www/backend \
+    && chmod -R 755 /var/www/html /var/www/backend
+
+# Expone el puerto 8080, que es donde Nginx escuchará y Cloud Run redirigirá el tráfico
+EXPOSE 8080
+
+# Copia el script de entrada que iniciará ambos servicios (Nginx y PHP-FPM)
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+ENTRYPOINT ["docker-entrypoint.sh"]

@@ -1,7 +1,6 @@
 async function getRenderOrganizations(search, filter) {
     showLoader();
 
-    setTimeout(async() => {
         try {
             const response = await fetch('../backend/controllers/discoverController.php', {
                 method: 'POST',
@@ -34,7 +33,6 @@ async function getRenderOrganizations(search, filter) {
             console.error('Error:', error.message);
         }
 
-    }, 1000);
 }
 
 async function getRenderOrganizationProfile(userId) {

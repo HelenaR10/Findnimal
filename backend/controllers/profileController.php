@@ -1,6 +1,7 @@
 <?php
 
 require __DIR__.'/../config/config.php';
+require_once __DIR__ . '/../services/StorageService.php';
 
 $data = json_decode(file_get_contents('php://input'));
 
@@ -172,12 +173,21 @@ if ($data && isset($data->endpoint)) {
 
                 $db = new DB();
 
-                $sql = "DELETE FROM animals WHERE id = :id";
+                // Primero obtenemos la URL de la imagen
+                $sql = "SELECT animal_image FROM animals WHERE id = :id";
+                $animal = $db->request($sql, ['id' => $animalId])[0];
 
+                // Eliminamos la imagen de Google Cloud Storage
+                if ($animal && $animal->animal_image) {
+                    $storageService = new StorageService();
+                    $storageService->deleteFile($animal->animal_image, 'animals');
+                }
+
+                // Finalmente eliminamos el registro de la base de datos
+                $sql = "DELETE FROM animals WHERE id = :id";
                 $data = $db->request($sql, ['id' => $animalId]);
 
                 sendHttpSuccess();
-
                 break;
             
             case 'getMailBoxData':
@@ -279,7 +289,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['endpoint'])) {
                     sendHttpError(400);
                 }
 
-                 // Variables de la imagen
+                // Variables de la imagen
                 $fileTmpPath = $_FILES['image']['tmp_name'];
                 $fileName = $_FILES['image']['name'];
                 $fileType = $_FILES['image']['type'];
@@ -297,10 +307,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['endpoint'])) {
                     throw new Exception("Formato de imagen no permitido.");
                 }
 
-                    // Preparar el nombre final de la imagen
+                // Preparar el nombre final de la imagen
                 $imageName = uniqid() . '_' . $fileName;
-                $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/findnimal/storage/';
-                $imagePath = $uploadDir . $imageName;
+                
+                // Subir la imagen a Google Cloud Storage
+                $storageService = new StorageService();
+                $imageUrl = $storageService->uploadFile($fileTmpPath, $imageName, 'animals');
 
                 $sql = "INSERT INTO animals (user_id, name, breed_id, specie_id, hair_color, eye_color, size, age, sex, identification, description, animal_image, status)
                 VALUES (:user_id, :name, :breed_id, :specie_id, :hair, :eyes, :size, :age, :sex, :identification, :description, :animal_image, :status)";
@@ -317,7 +329,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['endpoint'])) {
                     'sex' => $sex,
                     'identification' => $identification,
                     'description' => $description,
-                    'animal_image' => $imageName,
+                    'animal_image' => $imageUrl,
                     'status' => 2,
                 ]);
                 
@@ -327,10 +339,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['endpoint'])) {
                 $result = $db->request($sql, ['user_id' => $userId, 'animal_id' => $animalId]);
 
                 $postId = $db->lastInsertId();
-                
-                if (!move_uploaded_file($fileTmpPath, $imagePath)) {
-                    throw new Exception('Error al mover la imagen al servidor.');
-                }
 
                 $postData = [
                     'id' => $postId,
@@ -342,7 +350,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['endpoint'])) {
                         'sex' => $sex, 
                         'age' => $age, 
                         'description' => $description, 
-                        'animal_image' => $imageName
+                        'animal_image' => $imageUrl
                     ]
                 ];
 
@@ -374,15 +382,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['endpoint'])) {
             $description = strip_tags($_POST['description']) ?? null;
 
             try {
-                $oldImagePath = $_SERVER['DOCUMENT_ROOT'] . "/findnimal/storage/$animalImageName";
-                $imageName = null;
+                $storageService = new StorageService();
+                $imageUrl = $animalImageName; // Mantener la URL actual por defecto
 
                 if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) { 
-
-                    if (file_exists($oldImagePath)) {
-                        unlink($oldImagePath);
-                    }
-
                     // Variables de la imagen
                     $fileTmpPath = $_FILES['image']['tmp_name'];
                     $fileName = $_FILES['image']['name'];
@@ -401,13 +404,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['endpoint'])) {
                         throw new Exception("Formato de imagen no permitido.");
                     }
 
-                        // Preparar el nombre final de la imagen
+                    // Preparar el nombre final de la imagen
                     $imageName = uniqid() . '_' . $fileName;
-                    $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/findnimal/storage/';
-                    $imagePath = $uploadDir . $imageName;
-
-                    if (!move_uploaded_file($fileTmpPath, $imagePath)) {
-                        throw new Exception('Error al mover la imagen al servidor.');
+                    
+                    // Subir la nueva imagen a Google Cloud Storage
+                    $imageUrl = $storageService->uploadFile($fileTmpPath, $imageName, 'animals');
+                    
+                    // Eliminar la imagen anterior de Google Cloud Storage
+                    if ($animalImageName) {
+                        $storageService->deleteFile($animalImageName, 'animals');
                     }
                 }
 
@@ -432,7 +437,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['endpoint'])) {
 
                 if ($imageName) {
                     $sql .= ", animal_image = :animal_image";
-                    $params['animal_image'] = $imageName;
+                    $params['animal_image'] = $imageUrl;
                 }
 
                 $sql .= " WHERE id = :animal_id";
@@ -489,89 +494,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['endpoint'])) {
                 }
 
                 if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) { 
+                    try {
+                        $storageService = new StorageService();
+                        
+                        // Variables de la imagen
+                        $fileTmpPath = $_FILES['image']['tmp_name'];
+                        $fileName = $_FILES['image']['name'];
+                        $fileType = $_FILES['image']['type'];
 
-                    if (file_exists($oldImagePath)) {
-                        unlink($oldImagePath);
-                    }
+                        $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+                        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
 
-                    // Variables de la imagen
-                    $fileTmpPath = $_FILES['image']['tmp_name'];
-                    $fileName = $_FILES['image']['name'];
-                    $fileType = $_FILES['image']['type'];
+                        $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 
-                    $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
-                    $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
+                        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                        $mimeTypeDetected = finfo_file($finfo, $fileTmpPath);
+                        finfo_close($finfo);
 
-                    $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-
-                    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-                    $mimeTypeDetected = finfo_file($finfo, $fileTmpPath);
-                    finfo_close($finfo);
-
-                    if (!in_array($fileExtension, $allowedExtensions) || !in_array($mimeTypeDetected, $allowedMimeTypes)) {
-                        throw new Exception("Formato de imagen no permitido.");
-                    }
+                        if (!in_array($fileExtension, $allowedExtensions) || !in_array($mimeTypeDetected, $allowedMimeTypes)) {
+                            throw new Exception("Formato de imagen no permitido.");
+                        }
 
                         // Preparar el nombre final de la imagen
-                    $imageName = uniqid() . '_' . $fileName;
-                    $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/findnimal/storage/user/';
-                    $imagePath = $uploadDir . $imageName;
-                    
-                    if (!move_uploaded_file($fileTmpPath, $imagePath)) {
-                        throw new Exception('Error al mover la imagen al servidor.');
+                        $imageName = uniqid() . '_' . $fileName;
+                        
+                        // Subir la imagen a Google Cloud Storage
+                        $imageUrl = $storageService->uploadFile($fileTmpPath, $imageName, 'user');
+                        
+                        // Si hay una imagen anterior, eliminarla
+                        if ($userImage) {
+                            $storageService->deleteFile($userImage, 'user');
+                        }
+
+                        $sql = "UPDATE users SET email = :email,
+                                                name = :name,
+                                                surname = :surname, 
+                                                phone = :phone,
+                                                location = :location,
+                                                role = :role";
+                        
+                        $params = [
+                            'user_id' => $userId,
+                            'email' => $email,
+                            'name' => $name, 
+                            'surname' => $surname, 
+                            'phone' => $phone, 
+                            'location' => $location, 
+                            'role' => $role
+                        ];
+
+                        if ($imageName) {
+                            $sql .= ", image = :user_image";
+                            $params['user_image'] = $imageUrl;
+                        }
+
+                        if ($password !== null) {
+                            $sql .= ", password = :password";
+                            $params['password'] = $password;
+                        }
+
+                        $sql .= " WHERE id = :user_id";
+
+                        $result = $db->request($sql, $params);
+
+                        $user = [
+                            'user_id' => $userId,
+                            'userData' => [
+                                'email' => $email, 
+                                'name' => $name, 
+                                'surname' => $surname, 
+                                'phone' => $phone, 
+                                'location' => $location, 
+                                'role' => $role,
+                                'user_image' => $imageUrl
+                            ]
+                        ];
+
+                        if ($result->rowCount() !== false) {
+                            sendHttpSuccess($user);
+                        } else {
+                            sendHttpError(500);
+                        }
+                    } catch (Exception $e) {
+                        sendHttpError(500, $e->getMessage());
                     }
                 }
-
-                $sql = "UPDATE users SET email = :email,
-                                        name = :name,
-                                        surname = :surname, 
-                                        phone = :phone,
-                                        location = :location,
-                                        role = :role";
-                
-                $params = [
-                    'user_id' => $userId,
-                    'email' => $email,
-                    'name' => $name, 
-                    'surname' => $surname, 
-                    'phone' => $phone, 
-                    'location' => $location, 
-                    'role' => $role
-                ];
-
-                if ($imageName) {
-                    $sql .= ", image = :user_image";
-                    $params['user_image'] = $imageName;
-                }
-
-                if ($password !== null) {
-                    $sql .= ", password = :password";
-                    $params['password'] = $password;
-                }
-
-                $sql .= " WHERE id = :user_id";
-
-                $result = $db->request($sql, $params);
-
-                $user = [
-                    'user_id' => $userId,
-                    'userData' => [
-                        'email' => $email, 
-                        'name' => $name, 
-                        'surname' => $surname, 
-                        'phone' => $phone, 
-                        'location' => $location, 
-                        'role' => $role,
-                        'user_image' => $imageName ?? $userImage
-                    ]
-                ];
-
-                if ($result->rowCount() !== false) {
-                    sendHttpSuccess($user);
-                } else {
-                    sendHttpError(500);
-                }
-                
             } catch (\Throwable $th) {
                 sendHttpError(500, $th->getMessage());
             }

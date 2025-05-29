@@ -329,7 +329,7 @@ async function renderProfile() {
                             <!-- <img src="assets/icons/destellos.png" alt="flashes" class="flashes-profile"> -->
                             <h1>Hola, <span class="home-cover_title-red">${userData.userName}</span></h1>
                             <div class="data_person_img">
-                                <img src="../storage/user/${userData.image}" alt="image profile">
+                                <img src="${userData.image || 'assets/img-ej.JPG'}" alt="image profile">
                             </div>
                             <h3>${roleName}</h3>
                             <div class="localization-person">
@@ -377,7 +377,7 @@ async function renderProfile() {
 
         postsData.forEach(post => {
             HTMLcontent += `<div class="profile-pics_item" data-value="${post.post_id}">
-                                <img src="../storage/${post.animal_image}" alt="${post.name}" class="animal-image" data-animal-id="${post.animal_id}">
+                                <img src="${post.animal_image}" alt="${post.name}" class="animal-image" data-animal-id="${post.animal_id}">
                                 <div class="pics_item-buttons">
                                     <img src="assets/icons/edit-icon.svg" alt="edit-icon" class="action-icon edit-post-button">
                                     <img src="assets/icons/eye-icon.svg" alt="edit-icon" class="action-icon show-post-button">
@@ -406,7 +406,7 @@ async function renderEditProfile() {
                             </div>
                             <form id="editProfileForm">
                                 <div class="profile-form_photo">
-                                    <img src="../storage/user/${userImage}" alt="${userData.userName}" id="profileImage" data-user-image="${userImage}">
+                                    <img src="${userImage}" alt="${userData.userName}" id="profileImage" data-user-image="${userImage}">
                                     <input type="file" name="image">
                                 </div>
                                 <div class="form-input">
@@ -459,7 +459,7 @@ async function renderMailbox() {
         notifications += ` <div class="notification-box">
                                 <div class="notification" id="${notification.notificationId}">
                                     <div class="notification-img">
-                                        <img src="../storage/${notification.animalImage}" alt="${notification.senderName}">
+                                        <img src="${notification.animalImage}" alt="${notification.senderName}">
                                     </div>
                                     <h3>${notification.senderName}</h3>
                                     <div class="notification-buttons">
@@ -600,7 +600,7 @@ async function renderCreatePost() {
                             </div>
                             <div class="profile-form_file">
                                 <label for="animal photo">Foto del animal</label>
-                                <input id="createPostImage" name="image" type="file" required required>
+                                <input id="createPostImage" name="image" type="file" required>
                             </div>
                             <div class="profile-form_button">
                                 <button class="cancel-button-profile">Cancelar</button>
@@ -751,8 +751,8 @@ async function renderEditPost(postId) {
                             </div>
                             <div class="profile-form_file">
                                 <label for="editPostImage">Foto del animal</label>
-                                <img id="imagePreview" src="../storage/${currentPost.animal_image}" alt="${currentPost.name}" />
-                                <input id="editPostImage" type="file" name="image" required>
+                                <img id="imagePreview" src="${currentPost.animal_image}" alt="${currentPost.name}" />
+                                <input id="editPostImage" type="file" name="image">
                             </div>
                             <div class="profile-form_button">
                                 <button class="cancel-button-profile">Cancelar</button>
@@ -806,7 +806,7 @@ async function renderShowPost(postId) {
     const currentPost = postsData.find(post => post.post_id == postId);
     const animalId = currentPost.animal_id;
 
-    let animalImage = (!currentPost.animal_image) ? "assets/img-ej.JPG" : `../storage/${currentPost.animal_image}`;
+    let animalImage = (!currentPost.animal_image) ? "assets/img-ej.JPG" : `${currentPost.animal_image}`;
 
     const animalPost = `<div class="animal-post_container" data-animal-id="${animalId}">
                             <div class="animal-post">
