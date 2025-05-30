@@ -6,7 +6,6 @@ require __DIR__.'/../utils/security.php';
 require __DIR__.'/../utils/animalMatch.php';
 require __DIR__.'/../services/jwtService.php';
 
-
 const VALIDATION_PASSWORD_REGEX = '/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,16}$/';
 const VALIDATION_PHONE_REGEX = '/^\d{9}$/';
 const USER_ROLE = 1;

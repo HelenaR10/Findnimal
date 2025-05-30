@@ -5,17 +5,34 @@ class DB {
     
     public function __construct() {
         try {
+            // Check if we're running in Cloud Run (Cloud SQL)
+            if (getenv('GOOGLE_CLOUD_PROJECT')) {
+                $dsn = sprintf(
+                    'mysql:unix_socket=%s;dbname=%s',
+                    getenv('DB_HOST'),
+                    getenv('DB_NAME')
+                );
+            } else {
+                // Local development connection
+                $dsn = sprintf(
+                    'mysql:host=%s;port=%s;dbname=%s',
+                    getenv('DB_HOST'),
+                    getenv('DB_PORT'),
+                    getenv('DB_NAME')
+                );
+            }
+
             $this->conn = new PDO(
-                "mysql:host=".DB_HOST.";port=".DB_PORT.";dbname=".DB_NAME, 
-                DB_USER, 
-                DB_PASSWORD, 
+                $dsn,
+                getenv('DB_USER'),
+                getenv('DB_PASSWORD'),
                 [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ
                 ]
             );
         } catch (PDOException $e) {
-            throw new Exception("Error on conection: {$e->getMessage()}");
+            throw new Exception("Error on connection: {$e->getMessage()}");
         }
     }
 
@@ -28,7 +45,7 @@ class DB {
             return (stripos($sql, 'SELECT') === 0) ? $stmt->fetchAll() : $stmt;
 
         } catch (PDOException $e) {
-            throw new Exception("Error on conection: {$e->getMessage()}");
+            throw new Exception("Error on connection: {$e->getMessage()}");
         }
     }
 
