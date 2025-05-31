@@ -133,6 +133,7 @@ async function saveNotification(animalId, senderUserId = null) {
             throw new Error('No se encontraron coincidencias');
         }
         
+        alert('Notificación enviada correctamente');
         const receiveData = await response.json();
         document.querySelector('.animal-post_container').remove();
 
@@ -258,7 +259,7 @@ function renderOrganizationProfile(userData, postsData) {
                         </div>
                         <div class="profile-data_person">
                             <div class="data_person_img">
-                                <img src="../storage/user/${userData.image}" alt="image profile">
+                                <img src="${userData.image}" alt="image profile">
                             </div>
                             <h3>${roleName}</h3>
                             <div class="localization-person">
@@ -303,7 +304,7 @@ function renderOrganizationProfile(userData, postsData) {
 
         postsData.forEach(post => {
             HTMLcontent += `<div class="profile-pics_item" data-value="${post.post_id}">
-                                <img src="../storage/${post.animal_image}" alt="${post.name}" class="animal-image" data-animal-id="${post.animal_id}">
+                                <img src="${post.animal_image}" alt="${post.name}" class="animal-image" data-animal-id="${post.animal_id}">
                                 <div class="pics_item-buttons">
                                     <img src="assets/icons/eye-icon.svg" alt="show-icon" class="action-icon show-post-button">
                                 </div>

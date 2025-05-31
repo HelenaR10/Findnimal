@@ -36,7 +36,6 @@ const IDENTIFICATION_MAP = [
     2 => 'Sin collar'
 ];
 
-// Configuración de Google Cloud Storage
 define('GOOGLE_CLOUD_STORAGE_BUCKET', getenv('GOOGLE_CLOUD_STORAGE_BUCKET'));
 define('GOOGLE_CLOUD_PROJECT', getenv('GOOGLE_CLOUD_PROJECT'));
 define('GOOGLE_CLOUD_CREDENTIALS', getenv('GOOGLE_APPLICATION_CREDENTIALS'));

@@ -107,32 +107,37 @@ async function editProfile(profileForm) {
 
     const token = getAuthToken();
 
-        try {
-            const response = await fetch('../backend/controllers/profileController.php', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                body: formData
-            });
+    try {
+        const response = await fetch('../backend/controllers/profileController.php', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        });
 
-            if (response.status === 401) {
-                logout();
-                alert('Sesión expirada, inicia sesión');
-            }
-
-            if (!response.ok) {
-                alert('Error al guardar tus datos');
-                throw new Error('No se encontraron coincidencias');
-            }
-            
-            const receiveData = await response.json();
-            document.querySelector('.profile-form_container').remove();
-            renderProfile();
-
-        } catch (error) {
-            console.error('Error:', error.message);
+        if (response.status === 401) {
+            logout();
+            alert('Sesión expirada, inicia sesión');
+            return;
         }
+
+        if (!response.ok) {
+            alert('Error al guardar tus datos');
+            throw new Error('Error al guardar los datos');
+        }
+        
+        alert('Datos actualizados correctamente');
+        const receiveData = await response.json();
+        const formContainer = document.querySelector('.profile-form_container');
+        if (formContainer) {
+            formContainer.remove();
+        }
+        await renderProfile();
+
+    } catch (error) {
+        console.error('Error:', error.message);
+    }
 }
 
 async function getMailbox() {
@@ -195,6 +200,7 @@ async function deleteNotification(notificationId) {
             throw new Error('Error al eliminar la notificación');
         }
         
+        alert('Notificación eliminada correctamente');
         const receiveData = await response.json();
         const formContainer = document.querySelector('.profile-form_container');
         formContainer.remove()
@@ -232,6 +238,7 @@ async function createPost(postForm) {
                 throw new Error('Error al crear el post');
             }
             
+            alert('Post creado correctamente');
             const receiveData = await response.json();
 
             document.querySelector('.profile-form_container').remove();
@@ -252,32 +259,37 @@ async function editPost(postForm) {
 
     const token = getAuthToken();
 
-        try {
-            const response = await fetch('../backend/controllers/profileController.php', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                body: formData
-            });
+    try {
+        const response = await fetch('../backend/controllers/profileController.php', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        });
 
-            if (response.status === 401) {
-                logout();
-                alert('Sesión expirada, inicia sesión');
-            }
-
-            if (!response.ok) {
-                alert('Error al editar el post');
-                throw new Error('Error al editar el post');
-            }
-            
-            const receiveData = await response.json();
-            document.querySelector('.profile-form_container').remove();
-            renderProfile();
-
-        } catch (error) {
-            console.error('Error:', error.message);
+        if (response.status === 401) {
+            logout();
+            alert('Sesión expirada, inicia sesión');
+            return;
         }
+
+        if (!response.ok) {
+            alert('Error al editar el post');
+            throw new Error('Error al editar el post');
+        }
+        
+        alert('Post actualizado correctamente');
+        const receiveData = await response.json();
+        const formContainer = document.querySelector('.profile-form_container');
+        if (formContainer) {
+            formContainer.remove();
+        }
+        await renderProfile();
+
+    } catch (error) {
+        console.error('Error:', error.message);
+    }
 }
 
 async function deletePost(animalId) {
@@ -307,6 +319,7 @@ async function deletePost(animalId) {
                 throw new Error('Error al eliminar el post');
             }
             
+            alert('Post eliminado correctamente');
             const receiveData = await response.json();
 
             renderProfile();
@@ -406,7 +419,9 @@ async function renderEditProfile() {
                             </div>
                             <form id="editProfileForm">
                                 <div class="profile-form_photo">
-                                    <img src="${userImage}" alt="${userData.userName}" id="profileImage" data-user-image="${userImage}">
+                                    <div class="profile-form_photo-img">
+                                        <img src="${userImage}" alt="${userData.userName}" id="profileImage" data-user-image="${userImage}">
+                                    </div>
                                     <input type="file" name="image">
                                 </div>
                                 <div class="form-input">

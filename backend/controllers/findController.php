@@ -1,6 +1,7 @@
 <?php
 
 require __DIR__.'/../config/config.php';
+require_once __DIR__ . '/../services/StorageService.php';
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -39,17 +40,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['endpoint'])) {
             $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
             $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
 
-            $finfo = finfo_open(FILEINFO_MIME_TYPE);
-            $mimeTypeDetected = finfo_file($finfo, $fileTmpPath);
-            finfo_close($finfo);
+            $mimeTypeDetected = mime_content_type($fileTmpPath);
 
             if (!in_array($fileExtension, $allowedExtensions) || !in_array($mimeTypeDetected, $allowedMimeTypes)) {
                 sendHttpError(400, 'Formato de imagen no permitido');
             }
 
             $imageName = uniqid() . '_' . $fileName;
-            $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/findnimal/storage/';
-            $imagePath = $uploadDir . $imageName;
 
             // Insertar usuario si no está autenticado
             if ($jwtData === null) {
@@ -80,58 +77,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['endpoint'])) {
                 $userId = $jwtData->data->id;
             }
 
-            // Insertar animal
-            $insertAnimal = $db->request(
-                "INSERT INTO animals (user_id, breed_id, specie_id, hair_color, eye_color, size, age, sex, identification, description, animal_image, status)
-                VALUES (:user_id, :breed_id, :specie_id, :hair, :eyes, :size, :age, :sex, :identification, :description, :animal_image, :status)",
-                [
-                    'user_id' => $userId,
-                    'breed_id' => $breedId,
-                    'specie_id' => $specieId,
-                    'hair' => $hairColor,
-                    'eyes' => $eyesColor,
-                    'size' => $size,
-                    'age' => $age,
-                    'sex' => $sex,
-                    'identification' => $identification,
-                    'description' => $description,
-                    'animal_image' => $imageName,
-                    'status' => 1,
-                ]
-            );
+            try {
+                // Subir la imagen a Google Cloud Storage
+                $storageService = new StorageService();
+                $imageUrl = $storageService->uploadFile($fileTmpPath, $imageName, 'animals');
 
-            $animalId = $db->lastInsertId();
+                // Insertar animal
+                $insertAnimal = $db->request(
+                    "INSERT INTO animals (user_id, breed_id, specie_id, hair_color, eye_color, size, age, sex, identification, description, animal_image, status)
+                    VALUES (:user_id, :breed_id, :specie_id, :hair, :eyes, :size, :age, :sex, :identification, :description, :animal_image, :status)",
+                    [
+                        'user_id' => $userId,
+                        'breed_id' => $breedId,
+                        'specie_id' => $specieId,
+                        'hair' => $hairColor,
+                        'eyes' => $eyesColor,
+                        'size' => $size,
+                        'age' => $age,
+                        'sex' => $sex,
+                        'identification' => $identification,
+                        'description' => $description,
+                        'animal_image' => $imageUrl,
+                        'status' => 1,
+                    ]
+                );
 
-            if (!move_uploaded_file($fileTmpPath, $imagePath)) {
-                sendHttpError(500, 'Error al guardar imagen');
-            }
+                $animalId = $db->lastInsertId();
 
-            if (!$insertAnimal || $insertAnimal->rowCount() === 0) {
-                sendHttpError(500);
-            }
-
-            $animalsFinded = $db->request("SELECT * FROM animals WHERE status = :status", ['status' => 2]);
-
-            $matchedAnimalIds = [];
-
-            foreach ($animalsFinded as $animal) {
-                $match = calculateAnimalMatch($_POST, $animal);
-
-                if ($match >= 80) {
-                    $matchedAnimalIds[] = [
-                        'userId' => $userId,
-                        'animalId' => $animalId,
-                        'animalMatchId' => $animal->id,
-                        'userIdMatch' => $animal->user_id,
-                        'percent' => $match
-                    ];
+                if (!$insertAnimal || $insertAnimal->rowCount() === 0) {
+                    sendHttpError(500);
                 }
-            }
 
-            sendHttpSuccess([
-                'match' => !empty($matchedAnimalIds),
-                'matches' => $matchedAnimalIds
-            ]);
+                $animalsFinded = $db->request("SELECT * FROM animals WHERE status = :status", ['status' => 2]);
+
+                $matchedAnimalIds = [];
+
+                foreach ($animalsFinded as $animal) {
+                    $match = calculateAnimalMatch($_POST, $animal);
+
+                    if ($match >= 80) {
+                        $matchedAnimalIds[] = [
+                            'userId' => $userId,
+                            'animalId' => $animalId,
+                            'animalMatchId' => $animal->id,
+                            'userIdMatch' => $animal->user_id,
+                            'percent' => $match
+                        ];
+                    }
+                }
+
+                sendHttpSuccess([
+                    'match' => !empty($matchedAnimalIds),
+                    'matches' => $matchedAnimalIds
+                ]);
+
+            } catch (Exception $e) {
+                sendHttpError(500, $e->getMessage());
+            }
 
             break;
     }

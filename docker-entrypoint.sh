@@ -1,6 +1,8 @@
 #!/bin/bash
-# Inicia PHP-FPM en segundo plano
-php-fpm -D
 
-# Inicia Nginx en primer plano (esto mantendrá el contenedor ejecutándose)
-nginx -g "daemon off;"
+# Configurar el puerto de Apache basado en la variable de entorno PORT
+sed -i "s/\${PORT:-8080}/$PORT/g" /etc/apache2/ports.conf
+sed -i "s/\${PORT:-8080}/$PORT/g" /etc/apache2/sites-available/000-default.conf
+
+# Ejecutar el comando proporcionado
+exec "$@" 

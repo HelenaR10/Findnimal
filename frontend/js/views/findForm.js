@@ -242,7 +242,7 @@ async function renderAnimalMatchesModal(matches) {
     matches.forEach(match => {
         mactchesModal += `<div class="animal-match" id="${match.animalMatchId}" data-sender-user-id="${match.senderUserId}" data-user-name="${match.userName}" data-user-surname="${match.userSurname}" data-user-email="${match.userEmail}" data-user-phone="${match.userPhone}">
                                 <div class='animal-match_img'>
-                                    <img src="../storage/${match.animalImage}" alt="${match.animalName}">
+                                    <img src="${match.animalImage}" alt="${match.animalName}">
                                 </div>
                                 <div class="animal-match_contain">
                                     <h2>${match.animalName}</h2>

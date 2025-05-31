@@ -216,12 +216,6 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    
-    img {
-        width: 20%;
-        border: 1px solid black;
-        border-radius: 100%;
-    }
 
     input {
         width: auto;
@@ -230,7 +224,20 @@
         padding: 10px;
     }
 }
-
+.profile-form_photo-img {
+    width: 150px; 
+    height: 150px;
+    display: flex;
+    align-items: center;
+    margin-top: 20px;
+    overflow: hidden;
+    border: 1px solid;
+    border-radius: 100%;
+    
+    img {
+        width: 100%;
+    }
+}
 .profile-form_file {
     width: 70%;
     display: flex;

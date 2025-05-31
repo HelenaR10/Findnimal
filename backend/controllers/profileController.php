@@ -28,7 +28,7 @@ if ($data && isset($data->endpoint)) {
         case 'getProfileData':
 
             $jwtData = decodeTokenJWT();
-
+            
             $db = new DB();
 
             $userId = (is_numeric($jwtData->data->id)) ? $jwtData->data->id : null;
@@ -299,9 +299,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['endpoint'])) {
 
                 $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 
-                $finfo = finfo_open(FILEINFO_MIME_TYPE);
-                $mimeTypeDetected = finfo_file($finfo, $fileTmpPath);
-                finfo_close($finfo);
+                $mimeTypeDetected = mime_content_type($fileTmpPath);
 
                 if (!in_array($fileExtension, $allowedExtensions) || !in_array($mimeTypeDetected, $allowedMimeTypes)) {
                     throw new Exception("Formato de imagen no permitido.");
@@ -396,9 +394,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['endpoint'])) {
 
                     $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 
-                    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-                    $mimeTypeDetected = finfo_file($finfo, $fileTmpPath);
-                    finfo_close($finfo);
+                    $mimeTypeDetected = mime_content_type($fileTmpPath);
 
                     if (!in_array($fileExtension, $allowedExtensions) || !in_array($mimeTypeDetected, $allowedMimeTypes)) {
                         throw new Exception("Formato de imagen no permitido.");
@@ -435,7 +431,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['endpoint'])) {
                     'description' => $description
                 ];
 
-                if ($imageName) {
+                if ($imageUrl) {
                     $sql .= ", animal_image = :animal_image";
                     $params['animal_image'] = $imageUrl;
                 }
@@ -454,7 +450,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['endpoint'])) {
                         'sex' => $sex, 
                         'age' => $age, 
                         'description' => $description,
-                        'animal_image' => $imageName ?? $animalImageName
+                        'animal_image' => $imageUrl
                     ]
                 ];
 
@@ -482,11 +478,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['endpoint'])) {
             $phone = preg_match(VALIDATION_PHONE_REGEX, $_POST['phone']) ? $_POST['phone'] : null;
             $location = strip_tags($_POST['location']) ?? null;
             $role = is_numeric($_POST['role']) ? (int)$_POST['role'] : null;
-            $userImage = ($_POST['userImage']);
+            $userImage = isset($_POST['userImage']) && $_POST['userImage'] !== 'undefined' ? $_POST['userImage'] : null;
 
             try {
-                $oldImagePath = $_SERVER['DOCUMENT_ROOT'] . "/findnimal/storage/user/$userImage";
-                $imageName = null;
+                $imageUrl = $userImage;
                 $password = null;
 
                 if (!empty($_POST['password']) && preg_match(VALIDATION_PASSWORD_REGEX, $_POST['password'])) {
@@ -494,90 +489,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['endpoint'])) {
                 }
 
                 if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) { 
-                    try {
-                        $storageService = new StorageService();
-                        
-                        // Variables de la imagen
-                        $fileTmpPath = $_FILES['image']['tmp_name'];
-                        $fileName = $_FILES['image']['name'];
-                        $fileType = $_FILES['image']['type'];
+                    $storageService = new StorageService();
+                    
+                    $fileTmpPath = $_FILES['image']['tmp_name'];
+                    $fileName = $_FILES['image']['name'];
+                    $fileType = $_FILES['image']['type'];
 
-                        $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
-                        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
+                    $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+                    $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
 
-                        $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+                    $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 
-                        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-                        $mimeTypeDetected = finfo_file($finfo, $fileTmpPath);
-                        finfo_close($finfo);
+                    $mimeTypeDetected = mime_content_type($fileTmpPath);
 
-                        if (!in_array($fileExtension, $allowedExtensions) || !in_array($mimeTypeDetected, $allowedMimeTypes)) {
-                            throw new Exception("Formato de imagen no permitido.");
-                        }
-
-                        // Preparar el nombre final de la imagen
-                        $imageName = uniqid() . '_' . $fileName;
-                        
-                        // Subir la imagen a Google Cloud Storage
-                        $imageUrl = $storageService->uploadFile($fileTmpPath, $imageName, 'user');
-                        
-                        // Si hay una imagen anterior, eliminarla
-                        if ($userImage) {
-                            $storageService->deleteFile($userImage, 'user');
-                        }
-
-                        $sql = "UPDATE users SET email = :email,
-                                                name = :name,
-                                                surname = :surname, 
-                                                phone = :phone,
-                                                location = :location,
-                                                role = :role";
-                        
-                        $params = [
-                            'user_id' => $userId,
-                            'email' => $email,
-                            'name' => $name, 
-                            'surname' => $surname, 
-                            'phone' => $phone, 
-                            'location' => $location, 
-                            'role' => $role
-                        ];
-
-                        if ($imageName) {
-                            $sql .= ", image = :user_image";
-                            $params['user_image'] = $imageUrl;
-                        }
-
-                        if ($password !== null) {
-                            $sql .= ", password = :password";
-                            $params['password'] = $password;
-                        }
-
-                        $sql .= " WHERE id = :user_id";
-
-                        $result = $db->request($sql, $params);
-
-                        $user = [
-                            'user_id' => $userId,
-                            'userData' => [
-                                'email' => $email, 
-                                'name' => $name, 
-                                'surname' => $surname, 
-                                'phone' => $phone, 
-                                'location' => $location, 
-                                'role' => $role,
-                                'user_image' => $imageUrl
-                            ]
-                        ];
-
-                        if ($result->rowCount() !== false) {
-                            sendHttpSuccess($user);
-                        } else {
-                            sendHttpError(500);
-                        }
-                    } catch (Exception $e) {
-                        sendHttpError(500, $e->getMessage());
+                    if (!in_array($fileExtension, $allowedExtensions) || !in_array($mimeTypeDetected, $allowedMimeTypes)) {
+                        throw new Exception("Formato de imagen no permitido.");
                     }
+
+                    $imageName = uniqid() . '_' . $fileName;
+                
+                    $imageUrl = $storageService->uploadFile($fileTmpPath, $imageName, 'user');
+                    
+                    if ($userImage) {
+                        $storageService->deleteFile($userImage, 'user');
+                    }
+                }
+
+                $sql = "UPDATE users SET email = :email,
+                                        name = :name,
+                                        surname = :surname, 
+                                        phone = :phone,
+                                        location = :location,
+                                        role = :role";
+                
+                $params = [
+                    'user_id' => $userId,
+                    'email' => $email,
+                    'name' => $name, 
+                    'surname' => $surname, 
+                    'phone' => $phone, 
+                    'location' => $location, 
+                    'role' => $role
+                ];
+
+                if ($imageUrl) {
+                    $sql .= ", image = :user_image";
+                    $params['user_image'] = $imageUrl;
+                }
+
+                if ($password !== null) {
+                    $sql .= ", password = :password";
+                    $params['password'] = $password;
+                }
+
+                $sql .= " WHERE id = :user_id";
+
+                $result = $db->request($sql, $params);
+
+                $user = [
+                    'user_id' => $userId,
+                    'userData' => [
+                        'email' => $email, 
+                        'name' => $name, 
+                        'surname' => $surname, 
+                        'phone' => $phone, 
+                        'location' => $location, 
+                        'role' => $role,
+                        'user_image' => $imageUrl
+                    ]
+                ];
+
+                if ($result->rowCount() !== false) {
+                    sendHttpSuccess($user);
+                } else {
+                    sendHttpError(500);
                 }
             } catch (\Throwable $th) {
                 sendHttpError(500, $th->getMessage());

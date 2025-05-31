@@ -2,7 +2,7 @@ async function login(email, password) {
     const errorMessage = document.querySelector('.form-input .error-message');
 
     try {
-      const response = await fetch('/findnimal/backend/controllers/authController.php', {
+      const response = await fetch('../backend/controllers/authController.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

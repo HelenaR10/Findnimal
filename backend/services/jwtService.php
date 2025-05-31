@@ -4,7 +4,6 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
 function generateTokenJWT($data) {
-
     $jwtData = [
         'iat' => time(),
         'exp' => time() + 3600,
@@ -15,8 +14,8 @@ function generateTokenJWT($data) {
 }
 
 function getHeaderToken() {
-    $headers = getallheaders();
-    $authHeader = $headers['Authorization'] ?? '';
+    $headers = array_change_key_case(getallheaders(), CASE_LOWER);
+    $authHeader = $headers['authorization'] ?? '';
 
     if (preg_match('/^Bearer\s+([A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+)$/', $authHeader, $matches)) {
         return $matches[1];
@@ -27,7 +26,6 @@ function getHeaderToken() {
 }
 
 function decodeTokenJWT() {
-    
     try {
         $token = getHeaderToken();
         
